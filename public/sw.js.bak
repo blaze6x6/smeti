@@ -1,0 +1,7 @@
+/* Minimalen service worker: omogoča namestitev PWA ("Dodaj na začetni zaslon").
+   Omrežne zahteve grejo vedno mimo (brez predpomnjenja). */
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', () => {
+  /* namenoma brez predpomnjenja — vsebina je vedno sveža */
+});

@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-display), Georgia, serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+
+  /* svetla, živahna prenova: topel papir + bor + limeta */
+  --color-paper-50: #faf7ef;
+  --color-paper-100: #f4efe0;
+  --color-paper-200: #eae2cb;
+  --color-paper-300: #ddd2b2;
+  --color-card: #ffffff;
+
+  --color-ink: #12281d;
+  --color-ink-soft: #55705f;
+  --color-ink-faint: #93a699;
+
+  --color-pine-950: #0b281a;
+  --color-pine-900: #123a27;
+  --color-pine-800: #18482f;
+  --color-pine-700: #1e5c3b;
+  --color-pine-600: #2f7a4c;
+  --color-pine-500: #3fa05c;
+  --color-pine-400: #63b97e;
+  --color-pine-300: #9ad6ab;
+  --color-pine-200: #c9ecd2;
+  --color-pine-100: #e3f6e8;
+
+  --color-lime-600: #6f9a0f;
+  --color-lime-500: #8fc012;
+  --color-lime-400: #aede26;
+  --color-lime-300: #c9ec5c;
+  --color-lime-200: #e2f59b;
+  --color-lime-100: #f2fbce;
+
+  --color-amber-700: #9a6f05;
+  --color-amber-600: #bd8d08;
+  --color-amber-500: #dfa80b;
+  --color-amber-400: #f2c516;
+  --color-amber-100: #fbf0be;
+
+  --color-coral-700: #a03c20;
+  --color-coral-600: #c24e2b;
+  --color-coral-500: #df5e36;
+  --color-coral-100: #fce2d5;
+
+  --color-waste-mesani: #3ca849;
+  --color-waste-embalaza: #efc01a;
+  --color-waste-bio: #9a6b3f;
+  --color-waste-papir: #4e8de0;
+  --color-waste-steklo: #35b3a2;
+  --color-waste-kosovni: #8d7bd8;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-paper-50);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(1100px 480px at 85% -8%, rgba(174, 222, 38, 0.16), transparent 60%),
+    radial-gradient(900px 560px at -8% 24%, rgba(242, 197, 22, 0.10), transparent 55%),
+    radial-gradient(800px 500px at 108% 62%, rgba(63, 160, 92, 0.10), transparent 55%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--color-lime-400);
+  color: var(--color-pine-950);
+}
+
+/* iPhone varnost okoli zaslona */
+.safe-x { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+.safe-b { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+* { scrollbar-width: thin; scrollbar-color: #cfd6ba transparent; }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.75; }
+}
+.anim-rise { animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-rise-1 { animation-delay: 0.08s; }
+.anim-rise-2 { animation-delay: 0.16s; }
+.anim-rise-3 { animation-delay: 0.24s; }
+.dot-live { animation: pulse-dot 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .dot-live { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
