@@ -7,7 +7,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#faf7ef",
   "theme_color": "#faf7ef",
   "categories": ["utilities", "lifestyle"],
