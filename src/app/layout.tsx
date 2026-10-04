@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_BASE_URL || 'http://localhost:3000'),
   title: {
     default: APP_NAME,
-    template: '%s · ${APP_SHORT}`,
+    template: `%s · ${APP_SHORT}`,
   },
   description: APP_DESC,
   applicationName: APP_SHORT,
