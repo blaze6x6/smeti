@@ -1,15 +1,15 @@
 {
-  "name": "Koledar odvoza — Smokuč",
+  "name": "Koledar odvoza odpadkov · Občina Žirovnica",
   "short_name": "Odvoz Smokuč",
-  "description": "Koledar odvoza odpadkov za Smokuč (občina Žirovnica) z e-poštnimi obvestili dan pred odvozom.",
+  "description": "Koledar odvoza odpadkov za vse kraje v občini Žirovnica: mesečni koledar, e-poštna obvestila dan pred odvozom in klasifikacija odpadkov po JEKO.",
   "lang": "sl",
   "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a1f14",
-  "theme_color": "#0e2418",
+  "background_color": "#faf7ef",
+  "theme_color": "#faf7ef",
   "categories": ["utilities", "lifestyle"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
@@ -21,6 +21,11 @@
     {
       "name": "Naslednji odvoz",
       "url": "/#naslednji-odvoz",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Zbirna mesta",
+      "url": "/#zbirna-mesta",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
