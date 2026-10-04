@@ -14,7 +14,8 @@ const sans = Space_Grotesk({
   display: 'swap',
 });
 
-const APP_NAME = 'Koledar odvoza — Smokuč';
+const APP_NAME = 'Koledar odvoza odpadkov · Občina Žirovnica';
+const APP_SHORT = 'Odvoz Smokuč';
 const APP_DESC =
   'Koledar odvoza odpadkov za Smokuč (občina Žirovnica): odvoz ob ponedeljkih, e-poštna obvestila dan pred odvozom, podatki iz uradnega koledarja JEKO.';
 
@@ -22,10 +23,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_BASE_URL || 'http://localhost:3000'),
   title: {
     default: APP_NAME,
-    template: '%s · Koledar odvoza Smokuč',
+    template: '%s · ${APP_SHORT}`,
   },
   description: APP_DESC,
-  applicationName: 'Odvoz Smokuč',
+  applicationName: APP_SHORT,
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
@@ -33,8 +34,11 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'Odvoz Smokuč',
-    statusBarStyle: 'black-translucent',
+    title: APP_SHORT,
+    statusBarStyle: 'default',
+  },
+  other: {
+    'format-detection': 'telephone=no',
   },
   openGraph: {
     title: APP_NAME,
@@ -50,7 +54,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0e2418',
+  themeColor: '#faf7ef',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
