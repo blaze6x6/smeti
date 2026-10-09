@@ -36,7 +36,7 @@ async function main() {
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.col - b.col));
     console.log(`${y}: metoda=${parsed.method} celic=${cells.length}`);
     for (const v of VILLAGES.slice(0, 13)) {
-      const ev = buildVillageSchedule(cells, v);
+      const ev = buildVillageSchedule(cells, v, y);
       console.log(`   ${v.name.padEnd(26)} ${String(ev.length).padStart(3)} odvozov  prvi: ${ev[0]?.date} (${ev[0]?.types[0]})`);
     }
     out.push({ year: y, cells });

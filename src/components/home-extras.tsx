@@ -14,9 +14,6 @@ export function PwaInstall() {
   const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
-    }
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone;
     setIsIos(Boolean(ios && !standalone));
@@ -82,16 +79,12 @@ export function SubscribeForm() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, village: villageId }),
       });
-      const data = (await res.json()) as { ok: boolean; existed?: boolean; changed?: boolean; villageName?: string; error?: string };
+      const data = (await res.json()) as { ok: boolean; pending?: boolean; villageName?: string; error?: string };
       if (data.ok) {
         setState('ok');
-        const kraj = data.villageName ?? '';
         setMsg(
-          data.changed
-            ? `Kraj obveščanja je posodobljen na ${kraj}.`
-            : data.existed
-              ? `Ta naslov je že prijavljen za kraj ${kraj} — obvestila še naprej prihajajo.`
-              : `Prijava uspešna! Prvo obvestilo za ${kraj} prispe dan pred naslednjim odvozom.`,
+          `Na ${email || 'tvoj naslov'} smo poslali potrditveno sporočilo za kraj ${data.villageName ?? ''}. ` +
+            'Klikni povezavo v njem — brez potrditve obvestil ne bo (preveri tudi mapo z neželeno pošto).',
         );
         setEmail('');
       } else {

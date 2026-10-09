@@ -39,6 +39,15 @@ async function hmac(message: string): Promise<string> {
   return toHex(await crypto.subtle.sign('HMAC', key, enc.encode(message)));
 }
 
+/**
+ * Zaledje brez gesla je dovoljeno le izrecno (ALLOW_OPEN_ADMIN=true) ali v razvoju.
+ * V produkciji brez gesla zaledje ostane zaklenjeno (fail-closed).
+ */
+export function adminOpenAllowed(): boolean {
+  if (authEnabled()) return false;
+  return process.env.ALLOW_OPEN_ADMIN === 'true' || process.env.NODE_ENV !== 'production';
+}
+
 /** Primerjava brez časovnega uhajanja. */
 function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -67,9 +76,13 @@ export async function verifySessionValue(value: string | undefined | null): Prom
   return safeEqual(sig, expected);
 }
 
-/** Preveri vpisano geslo. */
-export function checkPassword(input: string): boolean {
+/** Preveri vpisano geslo (primerjava SHA-256 izvlečkov — brez uhajanja dolžine). */
+export async function checkPassword(input: string): Promise<boolean> {
   const pw = process.env.ADMIN_PASSWORD ?? '';
   if (!pw) return false;
-  return safeEqual(input, pw);
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(input)),
+    crypto.subtle.digest('SHA-256', enc.encode(pw)),
+  ]);
+  return safeEqual(toHex(a), toHex(b));
 }

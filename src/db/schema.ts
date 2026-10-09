@@ -26,7 +26,11 @@ export const subscribers = pgTable(
     email: text('email').notNull(),
     village: text('village').notNull().default('smokuc'),
     active: boolean('active').notNull().default(true),
-    token: text('token').notNull(), // za odjavo
+    /** ali je naslov potrjen s klikom na povezavo v e-pošti (double opt-in) */
+    confirmed: boolean('confirmed').notNull().default(true),
+    /** kraj, ki čaka na potrditev (sprememba kraja / ponovna prijava obstoječega naslova) */
+    pendingVillage: text('pending_village'),
+    token: text('token').notNull(), // za potrditev in odjavo
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex('subscribers_email_uq').on(t.email)],

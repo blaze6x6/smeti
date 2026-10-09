@@ -8,7 +8,7 @@ export async function GET() {
   const subs = await getSubscribers(false);
   return NextResponse.json({
     ok: true,
-    subscribers: subs.map((s) => ({ id: s.id, email: s.email, village: s.village, active: s.active, createdAt: s.createdAt })),
+    subscribers: subs.map((s) => ({ id: s.id, email: s.email, village: s.village, active: s.active, confirmed: s.confirmed, createdAt: s.createdAt })),
   });
 }
 

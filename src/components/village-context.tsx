@@ -8,6 +8,8 @@ export type SchedulePayload = {
   year: number;
   years: number[];
   events: ScheduleEventDto[];
+  /** vsi dogodki kraja po letih — koledar se lahko pomika med leti */
+  eventsByYear: Record<number, ScheduleEventDto[]>;
   upcoming: ScheduleEventDto[];
   today: string;
 };
@@ -80,6 +82,8 @@ export function VillageProvider({
     } catch {
       /* brez shrambe */
     }
+    // piškotek omogoča, da strežnik že ob prvem izrisu prikaže pravi kraj (brez utripanja)
+    document.cookie = `odvoz.kraj=${encodeURIComponent(villageId)}; path=/; max-age=31536000; samesite=lax`;
   }, [villageId]);
 
   const value = useMemo(() => ({ villageId, setVillageId, data, loading }), [villageId, data, loading]);

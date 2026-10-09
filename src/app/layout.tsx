@@ -15,9 +15,9 @@ const sans = Space_Grotesk({
 });
 
 const APP_NAME = 'Koledar odvoza odpadkov · Občina Žirovnica';
-const APP_SHORT = 'Odvoz Smokuč';
+const APP_SHORT = 'Koledar odvoza';
 const APP_DESC =
-  'Koledar odvoza odpadkov za Smokuč (občina Žirovnica): odvoz ob ponedeljkih, e-poštna obvestila dan pred odvozom, podatki iz uradnega koledarja JEKO.';
+  'Koledar odvoza odpadkov za vse kraje v občini Žirovnica (Smokuč, Breznica, Vrba, Žirovnica ...): e-poštna obvestila dan pred odvozom, podatki iz uradnega koledarja JEKO.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_BASE_URL || 'http://localhost:3000'),

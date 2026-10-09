@@ -1,24 +1,38 @@
 import nodemailer from 'nodemailer';
 import { formatSlLong } from '@/lib/dates';
 import { WASTE_TYPES, wasteColor, wasteLabel } from '@/lib/waste';
+import { escapeHtml } from '@/lib/http';
 
 export function smtpConfigured(): boolean {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
 }
 
-function getTransporter() {
+type Transporter = ReturnType<typeof nodemailer.createTransport>;
+const g = globalThis as typeof globalThis & { __smokucMailer?: { key: string; t: Transporter } };
+
+/** En skupen (pooled) transporter — ne odpiramo nove SMTP povezave za vsako sporočilo. */
+function getTransporter(): Transporter {
   const host = process.env.SMTP_HOST;
   if (!host) throw new Error('SMTP ni nastavljen (manjka SMTP_HOST).');
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  return nodemailer.createTransport({
+  const secure = (process.env.SMTP_SECURE ?? (port === 465 ? 'true' : 'false')) === 'true';
+  const key = [host, port, secure, process.env.SMTP_USER, process.env.SMTP_PASS].join('|');
+  if (g.__smokucMailer?.key === key) return g.__smokucMailer.t;
+  g.__smokucMailer?.t.close();
+  const t = nodemailer.createTransport({
     host,
     port,
-    secure: (process.env.SMTP_SECURE ?? (port === 465 ? 'true' : 'false')) === 'true',
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      : undefined,
+    secure,
+    pool: true,
+    maxConnections: 2,
+    maxMessages: 100,
+    auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
     connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 30000,
   });
+  g.__smokucMailer = { key, t };
+  return t;
 }
 
 function fromAddress(): string {
@@ -47,11 +61,11 @@ export function reminderHtml(opts: {
       <h1 style="font-size:26px;line-height:1.2;margin:10px 0 4px;color:#ffffff;">Jutri je odvoz — ${kraj}</h1>
       <p style="font-size:16px;color:#c9e6cf;margin:0 0 18px;">${formatSlLong(dateStr)}</p>
       <div style="margin:8px 0 18px;">${types.map(typeChip).join('')}</div>
-      ${note ? `<p style="background:#173d27;border-radius:12px;padding:12px 14px;font-size:14px;color:#ffe9a8;">Opomba: ${note}</p>` : ''}
+      ${note ? `<p style="background:#173d27;border-radius:12px;padding:12px 14px;font-size:14px;color:#ffe9a8;">Opomba: ${escapeHtml(note)}</p>` : ''}
       <p style="font-size:14px;color:#a8c9ae;line-height:1.5;">Zabojnike postavite ob mejo zemljišča <strong>prejšnji večer oziroma najkasneje do 6. ure zjutraj</strong>.</p>
       <hr style="border:none;border-top:1px solid #1f4a30;margin:20px 0;" />
       <p style="font-size:12px;color:#7fa486;">Koledar odvoza — ${kraj}, občina Žirovnica (podatki: JEKO Jesenice).
-      <br/><a href="${unsubscribeUrl}" style="color:#9fd8ad;">Odjava od obvestil</a></p>
+      <br/><a href="${escapeHtml(unsubscribeUrl)}" style="color:#9fd8ad;">Odjava od obvestil</a></p>
     </div>
   </div></body></html>`;
 }
@@ -73,6 +87,32 @@ export async function sendReminderMail(params: {
     subject,
     text: `Jutri, ${formatSlLong(params.dateStr)}, je v kraju ${kraj} odvoz: ${params.types.map(wasteLabel).join(', ')}.${params.note ? ` Opomba: ${params.note}.` : ''} Odjava: ${params.unsubscribeUrl}`,
     html: reminderHtml(params),
+    // RFC 8058: odjava z enim klikom neposredno v poštnem odjemalcu
+    headers: {
+      'List-Unsubscribe': `<${params.unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+  });
+}
+
+/** Potrditveno sporočilo (double opt-in). */
+export async function sendConfirmMail(params: { to: string; villageLabel: string; confirmUrl: string }): Promise<void> {
+  const transporter = getTransporter();
+  const { villageLabel, confirmUrl } = params;
+  await transporter.sendMail({
+    from: fromAddress(),
+    to: params.to,
+    subject: `Potrdi prijavo na obvestila o odvozu — ${villageLabel}`,
+    text: `Prejeli smo prošnjo za e-poštna obvestila o odvozu odpadkov za kraj ${villageLabel} (občina Žirovnica). Prijavo potrdiš s klikom na povezavo: ${confirmUrl}\n\nČe prijave nisi zahteval/a ti, sporočilo preprosto ignoriraj — brez potrditve ne bomo poslali ničesar.`,
+    html: `<!doctype html><html lang="sl"><body style="margin:0;padding:0;background:#0e1f16;font-family:Arial,Helvetica,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;padding:24px;">
+    <div style="background:#10321f;border:1px solid #1f4a30;border-radius:20px;padding:28px;color:#eaf5ec;">
+      <h1 style="font-size:24px;margin:0 0 12px;color:#ffffff;">Potrdi prijavo</h1>
+      <p style="font-size:15px;color:#c9e6cf;line-height:1.5;">Prejeli smo prošnjo za e-poštna obvestila o odvozu odpadkov za kraj <strong>${escapeHtml(villageLabel)}</strong> (občina Žirovnica).</p>
+      <p style="margin:22px 0;"><a href="${escapeHtml(confirmUrl)}" style="background:#a3e635;color:#10321f;text-decoration:none;font-weight:700;padding:13px 24px;border-radius:999px;display:inline-block;">Potrdi prijavo</a></p>
+      <p style="font-size:12px;color:#7fa486;line-height:1.5;">Če prijave nisi zahteval/a ti, sporočilo ignoriraj — brez potrditve ne bomo poslali ničesar.</p>
+    </div>
+  </div></body></html>`,
   });
 }
 

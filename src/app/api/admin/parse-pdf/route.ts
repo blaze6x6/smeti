@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
       .filter((c) => c.type)
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.col - b.col));
     const previewVillage = getVillage(String(form.get('kraj') || DEFAULT_VILLAGE));
-    const events = buildVillageSchedule(cells, previewVillage);
-    const perVillage = VILLAGES.map((v) => ({ id: v.id, name: v.name, count: buildVillageSchedule(cells, v).length }));
+    const events = buildVillageSchedule(cells, previewVillage, year);
+    const perVillage = VILLAGES.map((v) => ({ id: v.id, name: v.name, count: buildVillageSchedule(cells, v, year).length }));
     return NextResponse.json({
       ok: true,
       method: parsed.method,

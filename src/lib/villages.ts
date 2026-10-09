@@ -98,8 +98,12 @@ function mondayOf(dateStr: string): string {
  * Koledar JEKO v istem tednu obarva dneve vseh treh relacij (po/to/sr) z isto
  * frakcijo. Kraj torej dobi tisti dan, ki ustreza njegovi relaciji; če ta dan
  * ni obarvan (praznik), se odvoz prestavi na naslednji obarvani dan v tednu.
+ *
+ * Če je podano `year`, se za tedne, ki se začnejo v prejšnjem letu, prestavitev
+ * ne sklepa: koledar tega leta vsebuje le del tedna, manjkajoči dnevi pa so v
+ * koledarju prejšnjega leta — »manjkajoč« dan torej ni praznik.
  */
-export function buildVillageSchedule(cells: WeekCell[], village: Village): VillageEvent[] {
+export function buildVillageSchedule(cells: WeekCell[], village: Village, year?: number): VillageEvent[] {
   // skupine po tednih in frakcijah
   const weeks = new Map<string, Map<string, WeekCell[]>>();
   for (const c of cells) {
@@ -112,14 +116,15 @@ export function buildVillageSchedule(cells: WeekCell[], village: Village): Villa
   }
 
   const out = new Map<string, VillageEvent>();
-  for (const byType of weeks.values()) {
+  for (const [monday, byType] of weeks) {
+    const partialWeek = year !== undefined && Number(monday.slice(0, 4)) < year;
     for (const [type, list] of byType) {
       const wanted = type === 'embalaza' ? village.days.embalaza : village.days.mesani;
       list.sort((a, b) => a.col - b.col);
       const exact = list.find((c) => c.col === wanted);
       let picked = exact;
       let note: string | null = null;
-      if (!picked) {
+      if (!picked && !partialWeek) {
         // praznik — odvoz z zamikom na prvi naslednji obarvani dan v tednu
         picked = list.find((c) => c.col > wanted);
         if (picked) note = 'Prestavljen odvoz (praznik)';

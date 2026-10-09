@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BellRing, Leaf, MapPin, Settings, Trash2 } from 'lucide-react';
@@ -7,27 +8,25 @@ import { PwaInstall, SubscribeForm } from '@/components/home-extras';
 import WasteClassification from '@/components/waste-classification';
 import PlacesSection from '@/components/places-section';
 import CollapsibleSection from '@/components/collapsible-section';
-import { getAvailableYears, getEventsForYear, getUpcomingEvents } from '@/lib/data';
-import { DEFAULT_VILLAGE } from '@/lib/villages';
+import { getEventsByYear, getUpcomingEvents } from '@/lib/data';
+import { DEFAULT_VILLAGE, VILLAGES } from '@/lib/villages';
 import { MONTHS_SL, todayStr } from '@/lib/dates';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const today = todayStr();
-  const village = DEFAULT_VILLAGE;
-  const years = await getAvailableYears(village);
-  const year = years.length ? years[years.length - 1] : new Date(`${today}T00:00:00Z`).getUTCFullYear();
-  const currentYear = years.includes(new Date(`${today}T00:00:00Z`).getUTCFullYear())
-    ? new Date(`${today}T00:00:00Z`).getUTCFullYear()
-    : year;
-  const [events, upcoming] = await Promise.all([
-    getEventsForYear(currentYear, village),
-    getUpcomingEvents(6, village),
-  ]);
+  // zadnji izbrani kraj (piškotek) — strežnik takoj izriše pravi kraj
+  const saved = (await cookies()).get('odvoz.kraj')?.value;
+  const village = VILLAGES.some((v) => v.id === saved) ? (saved as string) : DEFAULT_VILLAGE;
+  const [eventsByYear, upcoming] = await Promise.all([getEventsByYear(village), getUpcomingEvents(6, village)]);
+  const years = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b);
+  const thisYear = new Date(`${today}T00:00:00Z`).getUTCFullYear();
+  const currentYear = years.includes(thisYear) ? thisYear : (years[years.length - 1] ?? thisYear);
+  const events = eventsByYear[currentYear] ?? [];
 
   return (
-    <VillageProvider initial={{ village, year: currentYear, years, events, upcoming, today }}>
+    <VillageProvider initial={{ village, year: currentYear, years, events, eventsByYear, upcoming, today }}>
       <main className="min-h-screen overflow-x-clip">
         {/* ---------- glava ---------- */}
         <header className="fixed top-0 inset-x-0 z-40 bg-paper-50/85 backdrop-blur-md border-b border-paper-200">

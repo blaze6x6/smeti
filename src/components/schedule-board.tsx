@@ -104,7 +104,10 @@ export function VillagePicker() {
 export function VillageCalendar() {
   const { data } = useVillage();
   const village: Village = VILLAGES.find((v) => v.id === data.village) ?? VILLAGES[0];
-  const eventsByYear = useMemo(() => ({ [data.year]: data.events }), [data.year, data.events]);
+  const eventsByYear = useMemo(
+    () => (data.eventsByYear && Object.keys(data.eventsByYear).length ? data.eventsByYear : { [data.year]: data.events }),
+    [data.eventsByYear, data.year, data.events],
+  );
 
   return (
     <>

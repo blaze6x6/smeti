@@ -89,3 +89,35 @@ export function minutesNowLj(): number {
   const p = ljubljanaParts();
   return p.hh * 60 + p.mm;
 }
+
+/** »pon, 5. 1. 2026« — kratek slovenski zapis z dnevom v tednu. */
+export function formatSlDay(s: string): string {
+  const { y, m, d } = parseDateStr(s);
+  return `${DAYS_SL_SHORT[weekdayOf(s)]}, ${d}. ${m}. ${y}`;
+}
+
+/** »5. 1. 2026« */
+export function formatSlNumeric(s: string): string {
+  const { y, m, d } = parseDateStr(s);
+  return `${d}. ${m}. ${y}`;
+}
+
+/**
+ * Razčleni slovenski vnos datuma (»5. 1. 2026«, »5.1.2026«, »05/01/2026«, tudi ISO »2026-01-05«)
+ * v ISO niz. Vrne null, če datum ni veljaven (npr. 31. 2.).
+ */
+export function parseSlDate(text: string): string | null {
+  const t = text.trim();
+  let y: number, m: number, d: number;
+  let mt = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (mt) {
+    [y, m, d] = [Number(mt[1]), Number(mt[2]), Number(mt[3])];
+  } else {
+    mt = t.match(/^(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]?\s*(\d{4})$/);
+    if (!mt) return null;
+    [d, m, y] = [Number(mt[1]), Number(mt[2]), Number(mt[3])];
+  }
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
+  return toStr({ y, m, d });
+}

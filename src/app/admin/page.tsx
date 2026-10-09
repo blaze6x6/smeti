@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Check, FileUp, Inbox, ListChecks, Loader2, LogOut, MailPlus, Plus,
-  Send, Settings2, Sparkles, Trash2, Users, Wand2, X,
+  Pencil, Send, Settings2, Sparkles, Trash2, Users, Wand2, X,
 } from 'lucide-react';
 import { COLLECTED_TYPES, wasteColor, wasteLabel } from '@/lib/waste';
-import { DEFAULT_VILLAGE, VILLAGES, villageName } from '@/lib/villages';
+import { DAY_NAMES, DEFAULT_VILLAGE, VILLAGES, getVillage, villageName } from '@/lib/villages';
+import { DAYS_SL, formatSlDay, formatSlNumeric, parseSlDate, weekdayOf } from '@/lib/dates';
 
 /* ------------------------------ tipi ------------------------------ */
 
@@ -15,7 +16,7 @@ type Ev = { date: string; types: string[]; note: string | null };
 type Cell = { date: string; col: number; type: string };
 type PerVillage = { id: string; name: string; count: number };
 type EvRow = Ev & { id?: number };
-type Sub = { id: number; email: string; village: string; active: boolean; createdAt: string };
+type Sub = { id: number; email: string; village: string; active: boolean; confirmed?: boolean; createdAt: string };
 type Settings = { notifyEnabled: boolean; notifyTime: string; daysBefore: number; lastRunDate: string };
 type SmtpInfo = { configured: boolean; host: string; port: string; user: string; from: string };
 type SentLog = { id: number; sentAt: string; targetDate: string; village: string; recipients: number; types: string[]; status: string; error: string | null };
@@ -55,6 +56,47 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="block text-xs uppercase tracking-wider text-ink-soft/80 mb-1.5">{label}</span>
       {children}
     </label>
+  );
+}
+
+/** Vnos datuma v slovenskem zapisu (»5. 1. 2026«) z izpisom dneva v tednu. */
+function SlDateInput({ value, onChange, className }: { value: string; onChange: (iso: string) => void; className?: string }) {
+  const [text, setText] = useState(value ? formatSlNumeric(value) : '');
+  const [bad, setBad] = useState(false);
+
+  useEffect(() => {
+    // zunanja sprememba (npr. nov izbor vrstice) — ne povozi tipkanja, ki že pomeni isti datum
+    if (parseSlDate(text) !== value) {
+      setText(value ? formatSlNumeric(value) : '');
+      setBad(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <div className="inline-flex flex-col">
+      <input
+        inputMode="numeric"
+        placeholder="d. m. llll"
+        value={text}
+        aria-invalid={bad}
+        onChange={(e) => {
+          setText(e.target.value);
+          const iso = parseSlDate(e.target.value);
+          setBad(false);
+          if (iso) onChange(iso);
+        }}
+        onBlur={() => {
+          const iso = parseSlDate(text);
+          if (iso) setText(formatSlNumeric(iso));
+          else setBad(text.trim() !== '');
+        }}
+        className={`${className ?? ''} w-36 rounded-xl border bg-white px-3 py-2.5 text-ink min-h-[44px] focus:outline-none ${bad ? 'border-red-400' : 'border-paper-200 focus:border-lime-400'}`}
+      />
+      <span className={`mt-0.5 text-[11px] ${bad ? 'text-red-500' : 'text-ink-soft/70'}`}>
+        {bad ? 'Neveljaven datum (npr. 5. 1. 2026)' : value && parseSlDate(text) === value ? DAYS_SL[weekdayOf(value)] : '\u00a0'}
+      </span>
+    </div>
   );
 }
 
@@ -116,7 +158,7 @@ export default function AdminPage() {
             <ArrowLeft className="w-4 h-4" /> Koledar
           </Link>
           <h1 className="font-display text-xl text-ink ml-1">Zaledje</h1>
-          <span className="ml-auto text-[11px] text-ink-soft/60 hidden sm:block">brez prijave — zaščiti na ravni reverse proxyja</span>
+          <span className="ml-auto text-[11px] text-ink-soft/60 hidden sm:block"></span>
         </div>
       </header>
 
@@ -127,6 +169,19 @@ export default function AdminPage() {
           {notice.text}
         </div>
       )}
+
+      {(() => {
+        const now = new Date();
+        const needed = now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
+        if (!years.length || years.includes(needed)) return null;
+        return (
+          <div className="safe-x mx-auto max-w-6xl mt-4">
+            <div className="rounded-2xl border border-amber-400/60 bg-amber-100 text-amber-900 px-4 py-3 text-sm font-medium">
+              Za leto {needed} v koledarju še ni podatkov. Ko JEKO objavi PDF koledar, ga uvozi v zavihku »Uvoz PDF«.
+            </div>
+          </div>
+        );
+      })()}
 
       {/* statistika */}
       <div className="safe-x mx-auto max-w-6xl grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
@@ -276,14 +331,6 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
     }
   };
 
-  const toggleType = (date: string, t: string) => {
-    setRows((prev) => prev.map((r) => {
-      if (r.date !== date) return r;
-      const has = r.types.includes(t);
-      return { ...r, types: has ? r.types.filter((x) => x !== t) : [...r.types, t] };
-    }));
-  };
-
   return (
     <section className="space-y-4">
       <div className="rounded-3xl border border-paper-200 bg-card p-5 sm:p-7">
@@ -358,7 +405,7 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
         </p>
         <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
           <Field label="Prvi ponedeljek z odvozom">
-            <input type="date" value={genFirstMonday} onChange={(e) => setGenFirstMonday(e.target.value)} className={inputCls} />
+            <SlDateInput value={genFirstMonday} onChange={setGenFirstMonday} />
           </Field>
           <Field label="Frakcija na prvi ponedeljek">
             <select value={genStartType} onChange={(e) => setGenStartType(e.target.value)} className={inputCls}>
@@ -398,35 +445,21 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
             </div>
           </div>
         )}
-        <ManualAdd onAdd={(ev) => setRows((prev) => {
-          const map = new Map<string, EvRow>([...prev, ev].map((e) => [e.date, e]));
-          return Array.from(map.values()).sort((a, b) => (a.date < b.date ? -1 : 1));
-        })} />
+        <p className="text-xs text-ink-soft/70 mb-2">
+          Predogled prikazuje urnik za izbrani kraj. Po shranjevanju lahko vsak dogodek (datum, frakcijo, opombo)
+          popraviš ali dodaš v zavihku »Dogodki«.
+        </p>
         {rows.length === 0 ? (
           <p className="text-sm text-ink-soft/60 mt-4">Ni vrstic — preberi PDF, generiraj urnik ali dodaj dogodek ročno.</p>
         ) : (
           <ul className="mt-4 divide-y divide-paper-200 max-h-[480px] overflow-y-auto pr-1">
             {rows.map((r) => (
               <li key={r.date} className="py-2.5 flex flex-wrap items-center gap-2">
-                <span className="w-28 font-medium text-ink text-sm">{r.date}</span>
+                <span className="w-36 font-medium text-ink text-sm">{formatSlDay(r.date)}</span>
                 <div className="flex gap-1.5 flex-wrap">
-                  {COLLECTED_TYPES.map((t) => (
-                    <Chip key={t} id={t} active={r.types.includes(t)} onClick={() => toggleType(r.date, t)} />
-                  ))}
+                  {r.types.map((t) => <Chip key={t} id={t} active />)}
                 </div>
-                <input
-                  value={r.note ?? ''}
-                  placeholder="opomba (npr. praznik)"
-                  onChange={(e) => setRows((prev) => prev.map((x) => (x.date === r.date ? { ...x, note: e.target.value || null } : x)))}
-                  className="flex-1 min-w-[160px] rounded-lg border border-paper-200 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink-soft/40 focus:outline-none focus:border-lime-500"
-                />
-                <button
-                  onClick={() => setRows((prev) => prev.filter((x) => x.date !== r.date))}
-                  className="p-2 text-ink-soft/60 hover:text-red-300 transition-colors"
-                  aria-label={`Izbriši ${r.date}`}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {r.note && <span className="text-xs text-ink-soft">{r.note}</span>}
               </li>
             ))}
           </ul>
@@ -436,29 +469,35 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
   );
 }
 
-function ManualAdd({ onAdd }: { onAdd: (ev: EvRow) => void }) {
+function ManualAdd({ villageLabel, onAdd }: { villageLabel: string; onAdd: (ev: Ev) => Promise<boolean> }) {
   const [date, setDate] = useState('');
   const [types, setTypes] = useState<string[]>(['mesani']);
   const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
   return (
-    <div className="flex flex-wrap items-end gap-2 rounded-2xl border border-paper-200 bg-white/60 p-3">
-      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-ink min-h-[44px]" />
-      <div className="flex gap-1.5">
+    <div className="flex flex-wrap items-start gap-2 rounded-2xl border border-paper-200 bg-white/60 p-3 mb-4">
+      <SlDateInput value={date} onChange={setDate} />
+      <div className="flex gap-1.5 pt-1.5">
         {COLLECTED_TYPES.map((t) => (
           <Chip key={t} id={t} active={types.includes(t)} onClick={() => setTypes((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]))} />
         ))}
       </div>
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opomba" className="flex-1 min-w-[120px] rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-sm text-ink min-h-[44px]" />
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opomba (npr. praznik)" className="flex-1 min-w-[120px] rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-sm text-ink min-h-[44px]" />
       <button
-        onClick={() => {
-          if (!date || !types.length) return;
-          onAdd({ date, types, note: note || null });
-          setDate('');
-          setNote('');
+        disabled={busy || !date || !types.length}
+        onClick={async () => {
+          setBusy(true);
+          const ok = await onAdd({ date, types, note: note || null });
+          setBusy(false);
+          if (ok) {
+            setDate('');
+            setNote('');
+          }
         }}
         className={ghostBtnCls + ' !min-h-[44px] !px-4 !py-2 text-sm'}
+        title={`Doda dogodek za kraj ${villageLabel}`}
       >
-        <Plus className="w-4 h-4" /> Dodaj
+        <Plus className="w-4 h-4" /> Dodaj ({villageLabel})
       </button>
     </div>
   );
@@ -498,6 +537,59 @@ function EventsTab({ say, years, onChanged }: { say: (k: 'ok' | 'err', t: string
     onChanged();
   };
 
+  const [editId, setEditId] = useState<number | null>(null);
+  const [draft, setDraft] = useState<Ev>({ date: '', types: [], note: null });
+  const [alsoSame, setAlsoSame] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = (r: EvRow) => {
+    setEditId(r.id ?? null);
+    setDraft({ date: r.date, types: r.types, note: r.note });
+  };
+
+  const saveEdit = async () => {
+    if (!editId) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: editId, ...draft, alsoSame }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Shranjevanje ni uspelo.');
+      say('ok', data.changed > 1 ? `Popravljeno v ${data.changed} krajih.` : 'Popravljeno.');
+      setEditId(null);
+      await load(year, village);
+      onChanged();
+    } catch (e) {
+      say('err', e instanceof Error ? e.message : 'Napaka.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addOne = async (ev: Ev): Promise<boolean> => {
+    const res = await fetch('/api/admin/events/item', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ village, ...ev }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      say('err', data.error || 'Napaka.');
+      return false;
+    }
+    say('ok', `Dodano za kraj ${villageName(village)}.`);
+    const y = Number(ev.date.slice(0, 4));
+    if (y !== year) setYear(y);
+    else await load(year, village);
+    onChanged();
+    return true;
+  };
+
+  const v = getVillage(village);
+
   return (
     <section className="rounded-3xl border border-paper-200 bg-card p-5 sm:p-7">
       <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -516,24 +608,79 @@ function EventsTab({ say, years, onChanged }: { say: (k: 'ok' | 'err', t: string
           <Trash2 className="w-4 h-4" /> Izbriši vse za {year}
         </button>
       </div>
+      <p className="text-xs text-ink-soft/70 mb-3">
+        Urnik za <strong>{v.name}</strong>: mešani odpadki ob {DAY_NAMES[v.days.mesani]}h, embalaža ob {DAY_NAMES[v.days.embalaza]}h.
+        Dogodke, ki niso na običajni dan (zamik), označi rumena oznaka — popravi jih s svinčnikom.
+      </p>
+      <ManualAdd villageLabel={v.name} onAdd={addOne} />
       {busy ? (
         <div className="py-10 grid place-items-center"><Loader2 className="w-6 h-6 animate-spin text-ink-soft" /></div>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-ink-soft/60">Ni dogodkov — uvozi PDF v zavihku »Uvoz PDF«.</p>
+        <p className="text-sm text-ink-soft/60">Ni dogodkov — uvozi PDF v zavihku »Uvoz PDF« ali dodaj dogodek zgoraj.</p>
       ) : (
         <ul className="divide-y divide-paper-200 max-h-[520px] overflow-y-auto pr-1">
-          {rows.map((r) => (
-            <li key={r.id} className="py-2.5 flex flex-wrap items-center gap-2 text-sm">
-              <span className="w-28 font-medium text-ink">{r.date}</span>
-              <span className="flex gap-1.5 flex-wrap">
-                {r.types.map((t) => <Chip key={t} id={t} active />)}
-              </span>
-              {r.note && <span className="text-xs text-waste-embalaza/90">{r.note}</span>}
-              <button onClick={() => del(r.id)} className="ml-auto p-2 text-ink-soft/60 hover:text-red-300" aria-label="Izbriši">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </li>
-          ))}
+          {rows.map((r) => {
+            const col = (weekdayOf(r.date) + 6) % 7;
+            const expected: number[] = Array.from(new Set<number>(r.types.map((t): number => (t === 'embalaza' ? v.days.embalaza : v.days.mesani))));
+            const unusual = !expected.includes(col) && !r.note;
+            if (editId !== null && r.id === editId) {
+              return (
+                <li key={r.id} className="py-3 space-y-2.5 bg-lime-400/10 -mx-2 px-2 rounded-xl">
+                  <div className="flex flex-wrap items-start gap-2">
+                    <SlDateInput value={draft.date} onChange={(iso) => setDraft((d) => ({ ...d, date: iso }))} />
+                    <div className="flex gap-1.5 pt-1.5">
+                      {COLLECTED_TYPES.map((t) => (
+                        <Chip
+                          key={t}
+                          id={t}
+                          active={draft.types.includes(t)}
+                          onClick={() => setDraft((d) => ({ ...d, types: d.types.includes(t) ? d.types.filter((x) => x !== t) : [...d.types, t] }))}
+                        />
+                      ))}
+                    </div>
+                    <input
+                      value={draft.note ?? ''}
+                      onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value || null }))}
+                      placeholder="opomba (npr. praznik)"
+                      className="flex-1 min-w-[140px] rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-sm text-ink min-h-[44px]"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-ink-soft">
+                    <input type="checkbox" checked={alsoSame} onChange={(e) => setAlsoSame(e.target.checked)} className="w-4 h-4 accent-lime-500" />
+                    Enako popravi tudi v drugih krajih, ki imajo na {formatSlDay(r.date)} isti odvoz
+                  </label>
+                  <div className="flex gap-2">
+                    <button onClick={saveEdit} disabled={saving || !draft.date || !draft.types.length} className={btnCls + ' !min-h-[40px] !px-4 !py-2 text-sm'}>
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Shrani
+                    </button>
+                    <button onClick={() => setEditId(null)} className={ghostBtnCls + ' !min-h-[40px] !px-4 !py-2 text-sm'}>
+                      <X className="w-4 h-4" /> Prekliči
+                    </button>
+                  </div>
+                </li>
+              );
+            }
+            return (
+              <li key={r.id} className="py-2.5 flex flex-wrap items-center gap-2 text-sm">
+                <span className="w-36 font-medium text-ink">{formatSlDay(r.date)}</span>
+                <span className="flex gap-1.5 flex-wrap">
+                  {r.types.map((t) => <Chip key={t} id={t} active />)}
+                </span>
+                {r.note && <span className="text-xs text-waste-embalaza/90">{r.note}</span>}
+                {unusual && (
+                  <span className="text-[11px] rounded-full bg-amber-100 text-amber-900 border border-amber-400/60 px-2 py-0.5" title="Datum ni na običajni dan odvoza za ta kraj">
+                    ni {expected.map((e) => DAY_NAMES[e]).join('/')}
+                  </span>
+                )}
+                <button onClick={() => startEdit(r)} className="ml-auto p-2 text-ink-soft/60 hover:text-ink" aria-label={`Uredi ${formatSlDay(r.date)}`}>
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => del(r.id)} className="p-2 text-ink-soft/60 hover:text-red-300" aria-label="Izbriši">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
@@ -604,7 +751,7 @@ function SubsTab({ subs, say, onChanged }: { subs: Sub[]; say: (k: 'ok' | 'err',
             <li key={s.id} className="py-3 flex items-center gap-3">
               <span className={`w-2 h-2 rounded-full ${s.active ? 'bg-lime-400' : 'bg-paper-300'}`} />
               <span className="text-ink">{s.email}</span>
-              {!s.active && <span className="text-[11px] text-ink-soft/60">(odjavljen)</span>}
+              {!s.active && <span className="text-[11px] text-ink-soft/60">{s.confirmed === false ? '(čaka na potrditev)' : '(odjavljen)'}</span>}
               <span className="ml-auto text-xs text-ink-soft/50 hidden sm:block">{new Date(s.createdAt).toLocaleDateString('sl-SI')}</span>
               <button onClick={() => del(s.id, s.email)} className="p-2 text-ink-soft/60 hover:text-red-300" aria-label={`Odstrani ${s.email}`}>
                 <X className="w-4 h-4" />

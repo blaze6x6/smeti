@@ -27,7 +27,7 @@ function LoginForm() {
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (data.ok) {
-        router.replace(back.startsWith('/') ? back : '/admin');
+        router.replace(back.startsWith('/') && !back.startsWith('//') && !back.startsWith('/\\') ? back : '/admin');
         router.refresh();
       } else {
         setError(data.error || 'Prijava ni uspela.');

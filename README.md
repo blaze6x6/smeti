@@ -47,10 +47,11 @@ Zaledje: http://localhost:3000/admin
 | `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` | SMTP strežnik za pošiljanje (nodemailer) |
 | `SMTP_FROM` | naslov pošiljatelja (neobvezno) |
 | `SMTP_SECURE` | `true` za SSL/465, sicer `false` (STARTTLS) |
-| `APP_BASE_URL` | javni naslov aplikacije (za povezavo za odjavo v mailih) |
-| `ADMIN_PASSWORD` | geslo za zaledje `/admin`; če je prazno, je zaledje odprto |
+| `APP_BASE_URL` | javni naslov aplikacije — **obvezen** za povezave za potrditev in odjavo v mailih |
+| `ADMIN_PASSWORD` | geslo za zaledje `/admin`; če je prazno, je zaledje v produkciji **zaklenjeno** |
+| `ALLOW_OPEN_ADMIN` | `true` izrecno dovoli zaledje brez gesla (samo lokalno) |
 | `ADMIN_SECRET` | neobvezno: ločen ključ za podpis seje (sicer izpeljan iz gesla) |
-| `CRON_SECRET` | če je nastavljen, klic `/api/cron/daily?secret=...` zahteva ključ |
+| `CRON_SECRET` | ključ za zunanji klic `/api/cron/daily` (glava `x-cron-secret`); brez njega je endpoint izklopljen |
 
 ## Uvoz novega leta (pdf)
 
@@ -69,19 +70,23 @@ ADMIN_PASSWORD=mocno-geslo-123
 
 Po ponovnem zagonu (`docker compose up -d`) `/admin` in vse poti `/api/admin/*`
 zahtevajo prijavo. Seja se hrani v podpisanem HttpOnly piškotku in velja 30 dni;
-odjaviš se z gumbom **Odjava** v zaledju. Če gesla ne nastaviš, zaledje ostane odprto
-(primerno samo za lokalno uporabo ali za zaščito na reverse proxyju).
+odjaviš se z gumbom **Odjava** v zaledju. Prijava je omejena na 10 poskusov / 15 min na IP.
+Če gesla ne nastaviš, je zaledje v produkciji zaklenjeno; odprto ga lahko izrecno dovoliš
+s `ALLOW_OPEN_ADMIN=true` (samo za lokalno rabo).
 
 ## Obvestila
 
 - Pogon teče **znotraj aplikacije** (preverjanje vsako minuto) in pošlje obvestilo ob nastavljeni uri dan pred odvozom.
-- Rezerva: zunanji `curl` klic `GET /api/cron/daily?force=1` (ali brez `force` ob nastavljeni uri).
+- Rezerva: zunanji klic `curl -H "x-cron-secret: $CRON_SECRET" http://.../api/cron/daily` (z `?force=1` ignorira uro in dnevno omejitev). Zahteva nastavljen `CRON_SECRET`.
+- Prijava je dvostopenjska (double opt-in): naročnik dobi potrditveno sporočilo in je aktiven šele po kliku na povezavo. Odjava je prek POST (tudi `List-Unsubscribe-Post`).
+- Hkratno pošiljanje preprečuje Postgres advisory lock, tako da obvestilo ne more iti dvakrat.
 - Test: `/admin` → **Nastavitve** → »Pošlji test« / »Sproži obvestilo zdaj«.
 
 ## Lokalni razvoj
 
 ```bash
 npm ci
+npm test                 # testi izračuna urnika
 npm run build            # ali: npm run dev
 npx drizzle-kit push      # uredi bazo (brez migracij)
 npm run db:seed           # napolni uradne podatke (idempotentno)
