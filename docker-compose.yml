@@ -40,8 +40,11 @@ services:
       CRON_SECRET: ${CRON_SECRET:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_SECRET: ${ADMIN_SECRET:-}
+      # zaledje brez gesla je privzeto zaklenjeno; "true" ga odpre (samo za lokalno rabo)
+      ALLOW_OPEN_ADMIN: ${ALLOW_OPEN_ADMIN:-false}
     ports:
       - "${APP_PORT:-3000}:3000"
 
 volumes:
   pgdata:
+
