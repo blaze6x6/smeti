@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+next-env.d.ts
+pgdata
+tmp
+.debug
+.DS_Store
+*.bak
