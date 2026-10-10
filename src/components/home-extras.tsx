@@ -14,16 +14,30 @@ export function PwaInstall() {
   const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone;
-    setIsIos(Boolean(ios && !standalone));
+    const nav = navigator as Navigator & { standalone?: boolean };
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
+    if (standalone) return; // že nameščena — gumba ne kažemo
+    // iPhone/iPod in iPad (iPadOS 13+ se predstavlja kot »Macintosh« z dotičnim zaslonom)
+    const ios =
+      /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIos(ios);
     const onPrompt = (e: Event) => {
       e.preventDefault();
       deferred.current = e;
       setCanInstall(true);
     };
+    const onInstalled = () => {
+      deferred.current = null;
+      setCanInstall(false);
+      setIsIos(false);
+    };
     window.addEventListener('beforeinstallprompt', onPrompt as EventListener);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt as EventListener);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt as EventListener);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
   }, []);
 
   const install = async () => {
@@ -51,8 +65,8 @@ export function PwaInstall() {
         <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-paper-200 bg-card p-4 text-sm text-ink shadow-xl z-50">
           <p className="font-semibold text-pine-950 mb-2">iPhone / iPad:</p>
           <ol className="list-decimal ml-4 space-y-1.5 text-ink-soft">
-            <li>Odpri stran v brskalniku <strong>Safari</strong></li>
-            <li>Dotakni se gumba <Share className="inline w-4 h-4 -mt-0.5" /> <strong>Deli</strong></li>
+            <li>Odpri stran v <strong>Safariju</strong> (od iOS 16.4 gre tudi v Chromu)</li>
+            <li>Dotakni se gumba <Share className="inline w-4 h-4 -mt-0.5" /> <strong>Deli</strong> (na iPadu je zgoraj, na iPhonu spodaj)</li>
             <li>Izberi <strong>»Dodaj na domači zaslon«</strong></li>
           </ol>
         </div>
