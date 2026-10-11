@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, Monitor, Moon, Palette, Sun } from 'lucide-react';
 import Credit from '@/components/credit';
 import { DEFAULT_DARK_THEME, DEFAULT_THEME, THEMES, THEME_STORAGE_KEY, type ThemeInfo } from '@/lib/themes';
@@ -65,6 +66,29 @@ export default function ThemeSwitcher() {
   const [pref, setPref] = useState<string>(DEFAULT_THEME);
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  // plošča je pripeta na zaslon (portal v body): nikoli ne štrli čez rob, tudi ne v ozkem pokončnem pogledu
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const btn = box.current?.getBoundingClientRect();
+      if (!btn) return;
+      const vw = document.documentElement.clientWidth;
+      const margin = 12;
+      const width = Math.min(vw - margin * 2, 416);
+      const left = Math.max(margin, Math.min(btn.right - width, vw - width - margin));
+      setPos({ top: btn.bottom + 8, left, width });
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     const p = readPref();
@@ -93,7 +117,9 @@ export default function ThemeSwitcher() {
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent | TouchEvent) => {
-      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (box.current?.contains(t) || panel.current?.contains(t)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     document.addEventListener('mousedown', onDown);
@@ -130,11 +156,13 @@ export default function ThemeSwitcher() {
       >
         <Palette className="w-4 h-4" />
       </button>
-      {open && (
+      {open && pos && createPortal(
         <div
+          ref={panel}
           role="dialog"
           aria-label="Izbira barvne teme"
-          className="absolute right-0 top-full mt-2 w-[min(92vw,26rem)] max-h-[75vh] overflow-y-auto rounded-2xl border border-paper-200 bg-card p-4 shadow-2xl z-50"
+          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, maxHeight: `calc(100vh - ${pos.top + 12}px)` }}
+          className="overflow-y-auto rounded-2xl border border-paper-200 bg-card p-4 shadow-2xl z-[100]"
         >
           <button
             type="button"
@@ -167,7 +195,8 @@ export default function ThemeSwitcher() {
           </div>
 
           <Credit className="mt-4 text-center" />
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
