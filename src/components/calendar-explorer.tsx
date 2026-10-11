@@ -125,7 +125,7 @@ export default function CalendarExplorer({ years, eventsByYear, today, villageNa
           <ChevronLeft className="w-6 h-6" />
         </button>
         <div className="flex-1 text-center">
-          <h3 className="font-display text-4xl sm:text-6xl leading-none text-pine-950" key={`${year}-${month}`}>
+          <h3 className="font-display text-4xl sm:text-6xl leading-none text-heading" key={`${year}-${month}`}>
             <span className="anim-rise inline-block">{MONTHS_SL[month - 1]}</span>{' '}
             <span className="anim-rise inline-block text-lime-600">{year}</span>
           </h3>
@@ -211,7 +211,7 @@ export default function CalendarExplorer({ years, eventsByYear, today, villageNa
             const cls = `relative rounded-xl border px-1.5 py-1 sm:px-2 sm:py-1.5 min-h-[52px] sm:min-h-[78px] flex flex-col justify-between text-left transition-transform duration-150 ${
               baseCls
             } ${textCls} ${c.isPast ? 'opacity-40' : ''} ${
-              c.isToday ? 'ring-2 ring-pine-950 ring-offset-2 ring-offset-card z-10' : ''
+              c.isToday ? 'ring-2 ring-btn ring-offset-2 ring-offset-card z-10' : ''
             } ${hasEv ? 'cursor-pointer hover:brightness-105 active:scale-[0.96]' : ''}`;
 
             if (hasEv && c.ev) {
@@ -253,7 +253,7 @@ export default function CalendarExplorer({ years, eventsByYear, today, villageNa
       <div className="mt-6 rounded-3xl border border-paper-200 bg-card p-5 sm:p-7">
         <div className="flex items-center gap-2.5 mb-4">
           <CalendarDays className="w-5 h-5 text-lime-600" />
-          <h4 className="font-display text-xl sm:text-2xl text-pine-950">
+          <h4 className="font-display text-xl sm:text-2xl text-heading">
             Odvozi v mesecu {MONTHS_SL[month - 1]}
           </h4>
           <span className="ml-auto text-xs text-ink-soft">{eventsInMonth.length}×</span>
@@ -281,11 +281,11 @@ export default function CalendarExplorer({ years, eventsByYear, today, villageNa
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-pine-950">{formatSlLong(e.date)}</span>
+                    <span className="font-semibold text-heading">{formatSlLong(e.date)}</span>
                     {e.date === today ? (
-                      <span className="text-[11px] font-bold uppercase tracking-wider bg-lime-400 text-pine-950 rounded-full px-2.5 py-1">Danes</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider bg-lime-400 text-on-accent rounded-full px-2.5 py-1">Danes</span>
                     ) : diff === 1 ? (
-                      <span className="text-[11px] font-bold uppercase tracking-wider bg-amber-400 text-pine-950 rounded-full px-2.5 py-1">Jutri</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider bg-amber-400 text-on-accent rounded-full px-2.5 py-1">Jutri</span>
                     ) : diff > 1 && diff <= 7 ? (
                       <span className="text-[11px] uppercase tracking-wider text-pine-600">čez {diff} dni</span>
                     ) : null}

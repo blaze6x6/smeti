@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Fraunces, Space_Grotesk } from 'next/font/google';
 import './globals.css';
+import { DEFAULT_DARK_THEME, DEFAULT_THEME, THEMES, THEME_STORAGE_KEY } from '@/lib/themes';
 
 const display = Fraunces({
   subsets: ['latin', 'latin-ext'],
@@ -57,9 +58,15 @@ export const viewport: Viewport = {
   themeColor: '#faf7ef',
 };
 
+const THEME_BOOT = `(function(){try{var ids=${JSON.stringify(THEMES.map((t) => t.id))};var t=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})||${JSON.stringify(DEFAULT_THEME)};if(t==='auto'){t=matchMedia('(prefers-color-scheme: dark)').matches?${JSON.stringify(DEFAULT_DARK_THEME)}:${JSON.stringify(DEFAULT_THEME)}}if(ids.indexOf(t)<0)t=${JSON.stringify(DEFAULT_THEME)};document.documentElement.setAttribute('data-theme',t)}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="sl" className={`${display.variable} ${sans.variable}`}>
+    <html lang="sl" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* tema se nastavi pred prvim izrisom (brez utripanja) */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      </head>
       <body>
         {children}
         {/* Samodejna registracija Service Workerja za PWA in celozaslonski način */}

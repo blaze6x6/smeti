@@ -28,7 +28,7 @@ export default function WasteClassification() {
             onClick={() => { setFilter(g); setOpen(null); }}
             className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors min-h-[40px] ${
               filter === g
-                ? 'bg-pine-950 text-white border-pine-950'
+                ? 'bg-btn text-btn-text border-btn'
                 : 'bg-card text-ink-soft border-paper-200 hover:border-pine-300'
             }`}
           >
@@ -76,7 +76,7 @@ function Card({ w, open, onToggle }: { w: WasteType; open: boolean; onToggle: ()
 
         <span className="flex-1 min-w-0">
           <span className="flex items-center gap-2 flex-wrap">
-            <span className="font-display text-lg sm:text-xl text-pine-950 leading-tight">{w.label}</span>
+            <span className="font-display text-lg sm:text-xl text-heading leading-tight">{w.label}</span>
             <span
               className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 border ${
                 w.group === 'dom'

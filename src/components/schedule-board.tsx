@@ -27,7 +27,7 @@ export function VillagePicker() {
               value={villageId}
               onChange={(e) => setVillageId(e.target.value)}
               aria-label="Kraj odvoza"
-              className="w-full appearance-none rounded-2xl border-2 border-pine-200 bg-pine-100 px-4 py-3.5 pr-11 text-lg font-semibold text-pine-950 focus:outline-none focus:border-lime-500 min-h-[56px] cursor-pointer"
+              className="w-full appearance-none rounded-2xl border-2 border-pine-200 bg-pine-100 px-4 py-3.5 pr-11 text-lg font-semibold text-heading focus:outline-none focus:border-lime-500 min-h-[56px] cursor-pointer"
             >
               {VILLAGES.map((v) => (
                 <option key={v.id} value={v.id}>
@@ -48,11 +48,11 @@ export function VillagePicker() {
         {next ? (
           <>
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-              <span className="font-display text-2xl sm:text-4xl text-pine-950">{formatSlLong(next.date)}</span>
+              <span className="font-display text-2xl sm:text-4xl text-heading">{formatSlLong(next.date)}</span>
               {nextDiff === 0 ? (
-                <span className="rounded-full bg-lime-400 text-pine-950 text-xs font-bold uppercase tracking-wider px-3 py-1.5 dot-live">Danes!</span>
+                <span className="rounded-full bg-lime-400 text-on-accent text-xs font-bold uppercase tracking-wider px-3 py-1.5 dot-live">Danes!</span>
               ) : nextDiff === 1 ? (
-                <span className="rounded-full bg-amber-400 text-pine-950 text-xs font-bold uppercase tracking-wider px-3 py-1.5">Jutri</span>
+                <span className="rounded-full bg-amber-400 text-on-accent text-xs font-bold uppercase tracking-wider px-3 py-1.5">Jutri</span>
               ) : (
                 <span className="rounded-full border border-pine-200 bg-pine-100 text-pine-700 text-xs uppercase tracking-wider px-3 py-1.5">čez {nextDiff} dni</span>
               )}
@@ -79,9 +79,9 @@ export function VillagePicker() {
         )}
       </div>
 
-      <div className="rounded-3xl border border-lime-500/40 bg-gradient-to-br from-lime-300 via-lime-400 to-amber-400 p-6 sm:p-8 flex flex-col justify-between gap-5 text-pine-950 shadow-[0_18px_50px_-24px_rgba(111,154,15,0.5)]">
+      <div className="rounded-3xl border border-lime-500/40 bg-gradient-to-br from-lime-300 via-lime-400 to-amber-400 p-6 sm:p-8 flex flex-col justify-between gap-5 text-on-accent shadow-[0_18px_50px_-24px_rgba(111,154,15,0.5)]">
         <div>
-          <div className="flex items-center gap-2 text-pine-800 text-xs uppercase tracking-[0.25em] mb-3">
+          <div className="flex items-center gap-2 text-on-accent text-xs uppercase tracking-[0.25em] mb-3">
             <BellRing className="w-4 h-4" /> E-poštna obvestila
           </div>
           <p className="text-lg font-semibold leading-snug">
@@ -91,7 +91,7 @@ export function VillagePicker() {
         </div>
         <a
           href="#obvestila"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-pine-950 text-white font-semibold px-6 py-3.5 hover:bg-pine-900 active:scale-[0.98] transition-all min-h-[52px]"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-on-accent text-white font-semibold px-6 py-3.5 hover:opacity-90 active:scale-[0.98] transition-all min-h-[52px]"
         >
           Nastavi obvestila <ArrowDown className="w-4 h-4" />
         </a>

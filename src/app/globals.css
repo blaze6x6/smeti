@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./themes.css";
 
 @theme {
   --font-display: var(--font-display), Georgia, serif;
@@ -10,6 +11,13 @@
   --color-paper-200: #eae2cb;
   --color-paper-300: #ddd2b2;
   --color-card: #ffffff;
+  /* semantične vloge (vrednosti določa vsaka tema v themes.css) */
+  --color-heading: #0b281a;
+  --color-on-accent: #0b281a;
+  --color-btn: #0b281a;
+  --color-btn-hover: #123a27;
+  --color-btn-text: #ffffff;
+  --color-amber-900: #5c4203;
 
   --color-ink: #12281d;
   --color-ink-soft: #55705f;
@@ -57,6 +65,7 @@
 }
 
 html {
+  background: var(--color-paper-50);
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
 }
@@ -67,9 +76,9 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
   background-image:
-    radial-gradient(1100px 480px at 85% -8%, rgba(174, 222, 38, 0.16), transparent 60%),
-    radial-gradient(900px 560px at -8% 24%, rgba(242, 197, 22, 0.10), transparent 55%),
-    radial-gradient(800px 500px at 108% 62%, rgba(63, 160, 92, 0.10), transparent 55%);
+    radial-gradient(1100px 480px at 85% -8%, color-mix(in srgb, var(--color-lime-400) 16%, transparent), transparent 60%),
+    radial-gradient(900px 560px at -8% 24%, color-mix(in srgb, var(--color-amber-400) 10%, transparent), transparent 55%),
+    radial-gradient(800px 500px at 108% 62%, color-mix(in srgb, var(--color-pine-500) 10%, transparent), transparent 55%);
   background-attachment: fixed;
 }
 
@@ -82,7 +91,7 @@ body {
 .safe-x { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
 .safe-b { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
 
-* { scrollbar-width: thin; scrollbar-color: #cfd6ba transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--color-paper-300) transparent; }
 
 .cal-grid {
   display: grid;

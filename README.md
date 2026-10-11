@@ -17,6 +17,7 @@ pripravi urnik ponedeljkov ter upošteva tudi prestavitve zaradi praznikov.
 - 📄 **Uvoz PDF za vsako leto** — uradni koledar JEKO; avtomatsko branje celic (brez ročnega prepisovanja)
 - ✉️ **Obvestila po e-pošti** — dan pred odvozom (privzeto ob 18:00) za **naročnikov kraj**; nodemailer
 - ♻️ **14 frakcij odpadkov** in zbirna mesta (zbirna centra Žirovnica/Jesenice, ekološki otoki, tekstil)
+- 🎨 **40 barvnih tem** — 20 svetlih in 20 temnih (gumb s paleto v glavi), možna je tudi samodejna izbira po sistemu; izbira se zapomni v brskalniku. Teme se generirajo z `python3 scripts/gen-themes.py`
 - 📱 **Mobilno + PWA** — prilagojeno Android/iPhone, dodaj na začetni zaslon kot aplikacijo
 - 🔐 **Zaščiteno zaledje** — `/admin` zaklene geslo iz `.env` (`ADMIN_PASSWORD`); javni koledar ostane brez prijave
 - 🐘 **PostgreSQL + Drizzle ORM** — migracije in seed tečejo samodejno ob zagonu

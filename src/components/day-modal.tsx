@@ -1,5 +1,6 @@
 'use client';
 
+import Credit from '@/components/credit';
 import { useEffect, useRef } from 'react';
 import { AlarmClock, Info, X } from 'lucide-react';
 import type { ScheduleEventDto } from '@/lib/data';
@@ -37,8 +38,8 @@ export default function DayModal({ event, villageName, today, onClose }: Props) 
   if (!event) return null;
   const diff = diffDaysStr(today, event.date);
   const badge =
-    diff === 0 ? { text: 'Danes', cls: 'bg-lime-400 text-pine-950' }
-      : diff === 1 ? { text: 'Jutri', cls: 'bg-amber-400 text-pine-950' }
+    diff === 0 ? { text: 'Danes', cls: 'bg-lime-400 text-on-accent' }
+      : diff === 1 ? { text: 'Jutri', cls: 'bg-amber-400 text-on-accent' }
         : diff > 1 ? { text: `čez ${diff} dni`, cls: 'bg-pine-100 text-pine-700 border border-pine-200' }
           : { text: 'opravljeno', cls: 'bg-paper-200 text-ink-soft' };
 
@@ -66,7 +67,7 @@ export default function DayModal({ event, villageName, today, onClose }: Props) 
           <div className="flex items-start gap-3 mb-5">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] uppercase tracking-[0.2em] text-pine-600 mb-1">{villageName}</p>
-              <h2 id="day-modal-title" className="font-display text-2xl text-pine-950 leading-tight">
+              <h2 id="day-modal-title" className="font-display text-2xl text-heading leading-tight">
                 {formatSlLong(event.date)}
               </h2>
               <span className={`inline-block mt-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${badge.cls}`}>
@@ -100,7 +101,7 @@ export default function DayModal({ event, villageName, today, onClose }: Props) 
                     <WasteIcon id={t} className="w-6 h-6" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block font-semibold text-pine-950 leading-snug">{wasteLabel(t)}</span>
+                    <span className="block font-semibold text-heading leading-snug">{wasteLabel(t)}</span>
                     {w && <span className="block text-xs text-ink-soft mt-0.5">{w.bin}</span>}
                   </span>
                 </li>
@@ -122,10 +123,11 @@ export default function DayModal({ event, villageName, today, onClose }: Props) 
 
           <button
             onClick={onClose}
-            className="mt-5 w-full rounded-full bg-pine-950 text-white py-3.5 font-semibold hover:bg-pine-900 active:scale-[0.98] transition-all min-h-[52px]"
+            className="mt-5 w-full rounded-full bg-btn text-btn-text py-3.5 font-semibold hover:bg-btn-hover active:scale-[0.98] transition-all min-h-[52px]"
           >
             Zapri
           </button>
+          <Credit className="mt-3 text-center" />
         </div>
       </div>
     </div>

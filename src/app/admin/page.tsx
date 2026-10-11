@@ -6,6 +6,8 @@ import {
   ArrowLeft, Check, FileUp, Inbox, ListChecks, Loader2, LogOut, MailPlus, Plus,
   Pencil, Send, Settings2, Sparkles, Trash2, Users, Wand2, X,
 } from 'lucide-react';
+import ThemeSwitcher from '@/components/theme-switcher';
+import Credit from '@/components/credit';
 import { COLLECTED_TYPES, wasteColor, wasteLabel } from '@/lib/waste';
 import { DAY_NAMES, DEFAULT_VILLAGE, VILLAGES, getVillage, villageName } from '@/lib/villages';
 import { DAYS_SL, formatSlDay, formatSlNumeric, parseSlDate, weekdayOf } from '@/lib/dates';
@@ -91,9 +93,9 @@ function SlDateInput({ value, onChange, className }: { value: string; onChange: 
           if (iso) setText(formatSlNumeric(iso));
           else setBad(text.trim() !== '');
         }}
-        className={`${className ?? ''} w-36 rounded-xl border bg-white px-3 py-2.5 text-ink min-h-[44px] focus:outline-none ${bad ? 'border-red-400' : 'border-paper-200 focus:border-lime-400'}`}
+        className={`${className ?? ''} w-36 rounded-xl border bg-card px-3 py-2.5 text-ink min-h-[44px] focus:outline-none ${bad ? 'border-coral-500' : 'border-paper-200 focus:border-lime-400'}`}
       />
-      <span className={`mt-0.5 text-[11px] ${bad ? 'text-red-500' : 'text-ink-soft/70'}`}>
+      <span className={`mt-0.5 text-[11px] ${bad ? 'text-coral-600' : 'text-ink-soft/70'}`}>
         {bad ? 'Neveljaven datum (npr. 5. 1. 2026)' : value && parseSlDate(text) === value ? DAYS_SL[weekdayOf(value)] : '\u00a0'}
       </span>
     </div>
@@ -101,9 +103,9 @@ function SlDateInput({ value, onChange, className }: { value: string; onChange: 
 }
 
 const inputCls =
-  'w-full rounded-xl border border-paper-200 bg-white px-3.5 py-3 text-base text-ink focus:outline-none focus:border-lime-400 min-h-[48px]';
+  'w-full rounded-xl border border-paper-200 bg-card px-3.5 py-3 text-base text-ink focus:outline-none focus:border-lime-400 min-h-[48px]';
 const btnCls =
-  'inline-flex items-center justify-center gap-2 rounded-full bg-lime-400 px-5 py-3 font-semibold text-pine-950 hover:bg-lime-300 active:scale-[0.98] transition-all disabled:opacity-50 min-h-[48px]';
+  'inline-flex items-center justify-center gap-2 rounded-full bg-lime-400 px-5 py-3 font-semibold text-on-accent hover:bg-lime-300 active:scale-[0.98] transition-all disabled:opacity-50 min-h-[48px]';
 const ghostBtnCls =
   'inline-flex items-center justify-center gap-2 rounded-full border border-paper-300 px-5 py-3 font-medium text-ink hover:bg-paper-100 active:scale-[0.98] transition-all disabled:opacity-50 min-h-[48px]';
 
@@ -158,13 +160,13 @@ export default function AdminPage() {
             <ArrowLeft className="w-4 h-4" /> Koledar
           </Link>
           <h1 className="font-display text-xl text-ink ml-1">Zaledje</h1>
-          <span className="ml-auto text-[11px] text-ink-soft/60 hidden sm:block"></span>
+          <div className="ml-auto"><ThemeSwitcher /></div>
         </div>
       </header>
 
       {notice && (
         <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full px-5 py-3 text-sm font-medium shadow-2xl ${
-          notice.kind === 'ok' ? 'bg-lime-300 text-pine-950' : 'bg-red-300 text-red-950'
+          notice.kind === 'ok' ? 'bg-lime-300 text-on-accent' : 'bg-red-300 text-red-950'
         }`}>
           {notice.text}
         </div>
@@ -207,7 +209,7 @@ export default function AdminPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-colors min-h-[44px] ${
-                tab === t.id ? 'bg-lime-300 text-pine-950' : 'bg-card text-ink-soft hover:bg-paper-100'
+                tab === t.id ? 'bg-lime-300 text-on-accent' : 'bg-card text-ink-soft hover:bg-paper-100'
               }`}
             >
               <t.icon className="w-4 h-4" /> {t.label}
@@ -223,6 +225,7 @@ export default function AdminPage() {
           {tab === 'dnevnik' && <LogsTab logs={logs} imports={imports} />}
         </div>
       </div>
+          <Credit className="mt-10 text-center" />
     </main>
   );
 }
@@ -365,7 +368,7 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
         )}
 
         {colors.length > 0 && (
-          <div className="mt-4 rounded-2xl border border-paper-200 bg-white/60 p-4">
+          <div className="mt-4 rounded-2xl border border-paper-200 bg-card/60 p-4">
             <p className="text-xs uppercase tracking-wider text-ink-soft/80 mb-3">Kaj pomenijo zaznane barve?</p>
             <div className="flex flex-wrap gap-3">
               {colors.map((c) => (
@@ -434,7 +437,7 @@ function ImportTab({ say, onSaved, years }: { say: (k: 'ok' | 'err', t: string) 
           </button>
         </div>
         {perVillage.length > 0 && (
-          <div className="mb-4 rounded-2xl border border-paper-200 bg-white/60 p-4">
+          <div className="mb-4 rounded-2xl border border-paper-200 bg-card/60 p-4">
             <p className="text-xs uppercase tracking-wider text-ink-soft mb-2">Število odvozov po krajih (shranijo se vsi)</p>
             <div className="flex flex-wrap gap-1.5">
               {perVillage.map((p) => (
@@ -475,14 +478,14 @@ function ManualAdd({ villageLabel, onAdd }: { villageLabel: string; onAdd: (ev: 
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   return (
-    <div className="flex flex-wrap items-start gap-2 rounded-2xl border border-paper-200 bg-white/60 p-3 mb-4">
+    <div className="flex flex-wrap items-start gap-2 rounded-2xl border border-paper-200 bg-card/60 p-3 mb-4">
       <SlDateInput value={date} onChange={setDate} />
       <div className="flex gap-1.5 pt-1.5">
         {COLLECTED_TYPES.map((t) => (
           <Chip key={t} id={t} active={types.includes(t)} onClick={() => setTypes((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]))} />
         ))}
       </div>
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opomba (npr. praznik)" className="flex-1 min-w-[120px] rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-sm text-ink min-h-[44px]" />
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opomba (npr. praznik)" className="flex-1 min-w-[120px] rounded-xl border border-paper-200 bg-card px-3 py-2.5 text-sm text-ink min-h-[44px]" />
       <button
         disabled={busy || !date || !types.length}
         onClick={async () => {
@@ -604,7 +607,7 @@ function EventsTab({ say, years, onChanged }: { say: (k: 'ok' | 'err', t: string
         <select value={year} onChange={(e) => setYear(parseInt(e.target.value, 10))} className={inputCls + ' !w-auto !min-h-[44px] !py-2 ml-auto'}>
           {(years.length ? years : [current]).map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
-        <button onClick={() => del(undefined, true)} className={ghostBtnCls + ' !min-h-[44px] !px-4 !py-2 text-sm !border-red-400/40 !text-red-200 hover:!bg-red-500/10'}>
+        <button onClick={() => del(undefined, true)} className={ghostBtnCls + ' !min-h-[44px] !px-4 !py-2 text-sm !border-coral-500/40 !text-coral-700 hover:!bg-coral-100'}>
           <Trash2 className="w-4 h-4" /> Izbriši vse za {year}
         </button>
       </div>
@@ -642,7 +645,7 @@ function EventsTab({ say, years, onChanged }: { say: (k: 'ok' | 'err', t: string
                       value={draft.note ?? ''}
                       onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value || null }))}
                       placeholder="opomba (npr. praznik)"
-                      className="flex-1 min-w-[140px] rounded-xl border border-paper-200 bg-white px-3 py-2.5 text-sm text-ink min-h-[44px]"
+                      className="flex-1 min-w-[140px] rounded-xl border border-paper-200 bg-card px-3 py-2.5 text-sm text-ink min-h-[44px]"
                     />
                   </div>
                   <label className="flex items-center gap-2 text-xs text-ink-soft">
@@ -675,7 +678,7 @@ function EventsTab({ say, years, onChanged }: { say: (k: 'ok' | 'err', t: string
                 <button onClick={() => startEdit(r)} className="ml-auto p-2 text-ink-soft/60 hover:text-ink" aria-label={`Uredi ${formatSlDay(r.date)}`}>
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => del(r.id)} className="p-2 text-ink-soft/60 hover:text-red-300" aria-label="Izbriši">
+                <button onClick={() => del(r.id)} className="p-2 text-ink-soft/60 hover:text-coral-600" aria-label="Izbriši">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </li>
@@ -753,7 +756,7 @@ function SubsTab({ subs, say, onChanged }: { subs: Sub[]; say: (k: 'ok' | 'err',
               <span className="text-ink">{s.email}</span>
               {!s.active && <span className="text-[11px] text-ink-soft/60">{s.confirmed === false ? '(čaka na potrditev)' : '(odjavljen)'}</span>}
               <span className="ml-auto text-xs text-ink-soft/50 hidden sm:block">{new Date(s.createdAt).toLocaleDateString('sl-SI')}</span>
-              <button onClick={() => del(s.id, s.email)} className="p-2 text-ink-soft/60 hover:text-red-300" aria-label={`Odstrani ${s.email}`}>
+              <button onClick={() => del(s.id, s.email)} className="p-2 text-ink-soft/60 hover:text-coral-600" aria-label={`Odstrani ${s.email}`}>
                 <X className="w-4 h-4" />
               </button>
             </li>
@@ -819,7 +822,7 @@ function SettingsTab({ settings, smtp, say, onChanged }: { settings: Settings | 
       <div className="rounded-3xl border border-paper-200 bg-card p-5 sm:p-7">
         <h2 className="font-display text-2xl text-ink mb-5">Obvestila po e-pošti</h2>
         <div className="grid sm:grid-cols-2 gap-4 max-w-xl">
-          <label className="flex items-center gap-3 rounded-2xl border border-paper-200 bg-white/60 p-4">
+          <label className="flex items-center gap-3 rounded-2xl border border-paper-200 bg-card/60 p-4">
             <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="w-5 h-5 accent-lime-500" />
             <span className="text-ink font-medium">Pošiljanje obvestil vklopljeno</span>
           </label>
@@ -878,14 +881,14 @@ function LogsTab({ logs, imports }: { logs: SentLog[]; imports: ImportLog[] }) {
         ) : (
           <ul className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
             {logs.map((l) => (
-              <li key={l.id} className="rounded-xl border border-paper-200 bg-white/60 p-3 text-sm">
+              <li key={l.id} className="rounded-xl border border-paper-200 bg-card/60 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-ink font-medium">{l.targetDate} · {villageName(l.village)} · {l.types.map(wasteLabel).join(', ')}</span>
-                  <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-full ${l.status === 'ok' ? 'bg-lime-400/20 text-ink-soft' : 'bg-red-400/20 text-red-300'}`}>{l.status}</span>
+                  <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-full ${l.status === 'ok' ? 'bg-lime-400/20 text-ink-soft' : 'bg-coral-100 text-coral-700'}`}>{l.status}</span>
                 </div>
                 <div className="text-xs text-ink-soft/60 mt-1">
                   {new Date(l.sentAt).toLocaleString('sl-SI')} · {l.recipients} prejemnik{l.recipients === 1 ? '' : l.recipients === 2 ? 'a' : l.recipients === 3 || l.recipients === 4 ? 'i' : 'ov'}
-                  {l.error ? <span className="block text-red-300/90 mt-0.5">{l.error}</span> : null}
+                  {l.error ? <span className="block text-coral-700 mt-0.5">{l.error}</span> : null}
                 </div>
               </li>
             ))}
@@ -899,7 +902,7 @@ function LogsTab({ logs, imports }: { logs: SentLog[]; imports: ImportLog[] }) {
         ) : (
           <ul className="space-y-2">
             {imports.map((i) => (
-              <li key={i.id} className="rounded-xl border border-paper-200 bg-white/60 p-3 text-sm flex items-center gap-3">
+              <li key={i.id} className="rounded-xl border border-paper-200 bg-card/60 p-3 text-sm flex items-center gap-3">
                 <span className="font-display text-xl text-ink">{i.year}</span>
                 <span>
                   <span className="block text-ink-soft">{i.eventsCount} dogodkov · {i.method}{i.filename ? ` · ${i.filename}` : ''}</span>

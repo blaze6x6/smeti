@@ -8,6 +8,8 @@ import { PwaInstall, SubscribeForm } from '@/components/home-extras';
 import WasteClassification from '@/components/waste-classification';
 import PlacesSection from '@/components/places-section';
 import CollapsibleSection from '@/components/collapsible-section';
+import ThemeSwitcher from '@/components/theme-switcher';
+import Credit from '@/components/credit';
 import { getEventsByYear, getUpcomingEvents } from '@/lib/data';
 import { DEFAULT_VILLAGE, VILLAGES } from '@/lib/villages';
 import { MONTHS_SL, todayStr } from '@/lib/dates';
@@ -32,11 +34,11 @@ export default async function Home() {
         <header className="fixed top-0 inset-x-0 z-40 bg-paper-50/85 backdrop-blur-md border-b border-paper-200">
           <div className="safe-x mx-auto max-w-6xl flex items-center gap-3 h-16">
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <span className="grid place-items-center w-9 h-9 rounded-xl bg-lime-400 text-pine-950 shrink-0 shadow-sm">
+              <span className="grid place-items-center w-9 h-9 rounded-xl bg-lime-400 text-on-accent shrink-0 shadow-sm">
                 <Leaf className="w-5 h-5" />
               </span>
               <span className="min-w-0">
-                <span className="block font-display text-lg leading-none text-pine-950 truncate">Koledar odvoza</span>
+                <span className="block font-display text-lg leading-none text-heading truncate">Koledar odvoza</span>
                 <span className="block text-[10px] uppercase tracking-[0.18em] text-ink-soft">občina Žirovnica</span>
               </span>
             </Link>
@@ -48,6 +50,7 @@ export default async function Home() {
             </nav>
             <div className="ml-auto md:ml-4 flex items-center gap-2">
               <PwaInstall />
+              <ThemeSwitcher />
               <Link
                 href="/admin"
                 aria-label="Zaledje"
@@ -128,9 +131,9 @@ export default async function Home() {
 
         {/* ---------- obvestila ---------- */}
         <section id="obvestila" className="safe-x mx-auto max-w-6xl pt-14 sm:pt-20 scroll-mt-20">
-          <div className="rounded-3xl border border-lime-500/40 bg-gradient-to-br from-lime-300 via-lime-400 to-amber-400 p-6 sm:p-10 text-pine-950">
+          <div className="rounded-3xl border border-lime-500/40 bg-gradient-to-br from-lime-300 via-lime-400 to-amber-400 p-6 sm:p-10 text-on-accent">
             <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-pine-800 text-xs uppercase tracking-[0.25em] mb-3">
+              <div className="flex items-center gap-2 text-on-accent text-xs uppercase tracking-[0.25em] mb-3">
                 <BellRing className="w-4 h-4" /> Obvestila po e-pošti
               </div>
               <h2 className="font-display text-3xl sm:text-4xl mb-3">Nikoli več pozabljen zabojnik</h2>
@@ -147,7 +150,7 @@ export default async function Home() {
         <footer className="safe-x safe-b mx-auto max-w-6xl pt-16 pb-8 mt-10 border-t border-paper-200">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-xs text-ink-soft">
             <div className="flex items-center gap-2">
-              <span className="grid place-items-center w-7 h-7 rounded-lg bg-lime-400 text-pine-950"><Leaf className="w-4 h-4" /></span>
+              <span className="grid place-items-center w-7 h-7 rounded-lg bg-lime-400 text-on-accent"><Leaf className="w-4 h-4" /></span>
               <span>Koledar odvoza odpadkov · občina Žirovnica</span>
             </div>
             <div className="sm:ml-auto flex items-center gap-5">
@@ -155,7 +158,8 @@ export default async function Home() {
               <Link href="/admin" className="underline decoration-lime-500 underline-offset-4 hover:text-ink transition-colors">Zaledje</Link>
             </div>
           </div>
-          <p className="mt-4 text-[11px] text-ink-faint">
+          <Credit className="mt-4" />
+          <p className="mt-2 text-[11px] text-ink-faint">
             {MONTHS_SL[new Date(`${today}T00:00:00Z`).getUTCMonth()]} {new Date(`${today}T00:00:00Z`).getUTCFullYear()} ·
             odvoz po relacijah (ponedeljek, torek, sreda) · obvestilo prispe dan prej ob 18:00
           </p>

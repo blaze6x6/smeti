@@ -36,7 +36,7 @@ export default function PlacesSection() {
                 <Recycle className="w-6 h-6" />
               </span>
               <div className="min-w-0">
-                <h3 className="font-display text-xl text-pine-950 leading-tight">{c.name}</h3>
+                <h3 className="font-display text-xl text-heading leading-tight">{c.name}</h3>
                 <p className="text-sm text-ink-soft mt-0.5">{c.address}</p>
               </div>
             </div>
@@ -76,12 +76,12 @@ export default function PlacesSection() {
 
             <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
               {c.phone && (
-                <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 text-pine-700 hover:text-pine-950 transition-colors">
+                <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 text-pine-700 hover:text-heading transition-colors">
                   <Phone className="w-4 h-4" /> {c.phone}
                 </a>
               )}
               {c.email && (
-                <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 text-pine-700 hover:text-pine-950 transition-colors break-all">
+                <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 text-pine-700 hover:text-heading transition-colors break-all">
                   <Mail className="w-4 h-4 shrink-0" /> {c.email}
                 </a>
               )}
@@ -102,11 +102,11 @@ export default function PlacesSection() {
       <div className="grid lg:grid-cols-2 gap-4">
         <article className="rounded-3xl border border-lime-400/40 bg-lime-100/70 p-6 sm:p-7">
           <div className="flex items-start gap-4 mb-3">
-            <span className="grid place-items-center w-12 h-12 rounded-2xl bg-lime-400 text-pine-950 shrink-0">
+            <span className="grid place-items-center w-12 h-12 rounded-2xl bg-lime-400 text-on-accent shrink-0">
               <Recycle className="w-6 h-6" />
             </span>
             <div>
-              <h3 className="font-display text-xl text-pine-950">{ECO_ISLANDS.title}</h3>
+              <h3 className="font-display text-xl text-heading">{ECO_ISLANDS.title}</h3>
               <p className="text-xs text-lime-600 font-bold uppercase tracking-wider mt-0.5">dostopni ves čas</p>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function PlacesSection() {
               <Shirt className="w-6 h-6" />
             </span>
             <div>
-              <h3 className="font-display text-xl text-pine-950">Zabojniki za uporaben tekstil</h3>
+              <h3 className="font-display text-xl text-heading">Zabojniki za uporaben tekstil</h3>
               <p className="text-xs text-ink-soft mt-0.5">JEKO v sodelovanju s Tekstilko d.o.o.</p>
             </div>
           </div>
@@ -147,11 +147,11 @@ export default function PlacesSection() {
       {/* kontakt JEKO */}
       <div className="rounded-3xl border border-paper-200 bg-paper-100 p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1">
-          <h3 className="font-display text-lg text-pine-950">{JEKO_CONTACT.company}</h3>
+          <h3 className="font-display text-lg text-heading">{JEKO_CONTACT.company}</h3>
           <p className="text-sm text-ink-soft mt-1">
-            {JEKO_CONTACT.wasteInfo.name}: <a href={`tel:${JEKO_CONTACT.wasteInfo.phone.replace(/\s/g, '')}`} className="text-pine-700 hover:text-pine-950">{JEKO_CONTACT.wasteInfo.phone}</a>
+            {JEKO_CONTACT.wasteInfo.name}: <a href={`tel:${JEKO_CONTACT.wasteInfo.phone.replace(/\s/g, '')}`} className="text-pine-700 hover:text-heading">{JEKO_CONTACT.wasteInfo.phone}</a>
             {' · '}
-            <a href={`mailto:${JEKO_CONTACT.wasteInfo.email}`} className="text-pine-700 hover:text-pine-950 break-all">{JEKO_CONTACT.wasteInfo.email}</a>
+            <a href={`mailto:${JEKO_CONTACT.wasteInfo.email}`} className="text-pine-700 hover:text-heading break-all">{JEKO_CONTACT.wasteInfo.email}</a>
           </p>
           <p className="text-sm text-ink-soft mt-1">{JEKO_CONTACT.bulky}</p>
         </div>
@@ -159,7 +159,7 @@ export default function PlacesSection() {
           href={JEKO_CONTACT.url}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-pine-950 text-white px-6 py-3 text-sm font-semibold hover:bg-pine-900 transition-colors min-h-[48px] shrink-0"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-btn text-btn-text px-6 py-3 text-sm font-semibold hover:bg-btn-hover transition-colors min-h-[48px] shrink-0"
         >
           jeko.si/odpadki <ExternalLink className="w-4 h-4" />
         </a>

@@ -82,7 +82,7 @@ export default function CollapsibleSection({
           {eyebrow && (
             <span className="block text-[11px] uppercase tracking-[0.25em] text-pine-600 mb-1">{eyebrow}</span>
           )}
-          <span className="block font-display text-2xl sm:text-3xl text-pine-950 leading-tight">{title}</span>
+          <span className="block font-display text-2xl sm:text-3xl text-heading leading-tight">{title}</span>
           {subtitle && <span className="block text-sm text-ink-soft mt-1 pr-2">{subtitle}</span>}
         </span>
         <span className="flex items-center gap-2 shrink-0">
@@ -93,7 +93,7 @@ export default function CollapsibleSection({
           )}
           <span
             className={`grid place-items-center w-11 h-11 rounded-full border transition-all duration-300 ${
-              open ? 'bg-pine-950 text-white border-pine-950 rotate-180' : 'bg-paper-100 text-pine-800 border-paper-200'
+              open ? 'bg-btn text-btn-text border-btn rotate-180' : 'bg-paper-100 text-pine-800 border-paper-200'
             }`}
           >
             <ChevronDown className="w-5 h-5" />

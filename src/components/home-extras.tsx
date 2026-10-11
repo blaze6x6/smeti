@@ -63,7 +63,7 @@ export function PwaInstall() {
       </button>
       {showIosHint && isIos && (
         <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-paper-200 bg-card p-4 text-sm text-ink shadow-xl z-50">
-          <p className="font-semibold text-pine-950 mb-2">iPhone / iPad:</p>
+          <p className="font-semibold text-heading mb-2">iPhone / iPad:</p>
           <ol className="list-decimal ml-4 space-y-1.5 text-ink-soft">
             <li>Odpri stran v <strong>Safariju</strong> (od iOS 16.4 gre tudi v Chromu)</li>
             <li>Dotakni se gumba <Share className="inline w-4 h-4 -mt-0.5" /> <strong>Deli</strong> (na iPadu je zgoraj, na iPhonu spodaj)</li>
@@ -114,14 +114,14 @@ export function SubscribeForm() {
   return (
     <form onSubmit={submit} className="w-full">
       <label className="block mb-3">
-        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-pine-800 mb-1.5">
+        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-on-accent mb-1.5">
           <MapPin className="w-3.5 h-3.5" /> Kraj obveščanja
         </span>
         <select
           value={villageId}
           onChange={(e) => setVillageId(e.target.value)}
           aria-label="Kraj za obveščanje"
-          className="w-full sm:max-w-xs rounded-full border border-paper-300 bg-white px-4 py-3 text-base font-semibold text-ink focus:outline-none focus:border-lime-600 min-h-[52px]"
+          className="w-full sm:max-w-xs rounded-full border border-paper-300 bg-card px-4 py-3 text-base font-semibold text-ink focus:outline-none focus:border-lime-600 min-h-[52px]"
         >
           {VILLAGES.map((v) => (
             <option key={v.id} value={v.id}>{v.name}{v.detail ? ` (${v.detail})` : ''}</option>
@@ -140,20 +140,20 @@ export function SubscribeForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tvoj.epostni@naslov.si"
             aria-label="E-poštni naslov"
-            className="w-full rounded-full border border-paper-300 bg-white pl-12 pr-4 py-4 text-base text-ink placeholder:text-ink-faint focus:outline-none focus:border-lime-600 focus:ring-2 focus:ring-lime-400/50 shadow-sm min-h-[56px]"
+            className="w-full rounded-full border border-paper-300 bg-card pl-12 pr-4 py-4 text-base text-ink placeholder:text-ink-faint focus:outline-none focus:border-lime-600 focus:ring-2 focus:ring-lime-400/50 shadow-sm min-h-[56px]"
           />
         </div>
         <button
           type="submit"
           disabled={state === 'sending'}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-pine-950 text-white px-7 py-4 font-semibold hover:bg-pine-900 active:scale-[0.98] transition-all disabled:opacity-60 min-h-[56px] text-base shadow"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-on-accent text-white px-7 py-4 font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 min-h-[56px] text-base shadow"
         >
           {state === 'sending' ? <Loader2 className="w-5 h-5 animate-spin" /> : <BellRing className="w-5 h-5" />}
           Obveščaj me
         </button>
       </div>
       {msg && (
-        <p className={`mt-3 flex items-start gap-2 text-sm font-medium ${state === 'ok' ? 'text-pine-800' : 'text-coral-700'}`} role="status">
+        <p className={`mt-3 flex items-start gap-2 text-sm font-medium text-on-accent`} role="status">
           {state === 'ok' ? <Check className="w-4 h-4 mt-0.5 shrink-0" /> : <Send className="w-4 h-4 mt-0.5 shrink-0" />}
           {msg}
         </p>
