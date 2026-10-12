@@ -21,7 +21,7 @@ type EvRow = Ev & { id?: number };
 type Sub = { id: number; email: string; village: string; active: boolean; confirmed?: boolean; createdAt: string };
 type Settings = { notifyEnabled: boolean; notifyTime: string; daysBefore: number; lastRunDate: string };
 type SmtpInfo = { configured: boolean; host: string; port: string; user: string; from: string };
-type SentLog = { id: number; sentAt: string; targetDate: string; village: string; recipients: number; types: string[]; status: string; error: string | null };
+type SentLog = { id: number; sentAt: string; targetDate: string; village: string; recipients: number; types: string[]; status: string; error: string | null; channel?: string };
 type ImportLog = { id: number; year: number; filename: string | null; method: string; eventsCount: number; createdAt: string };
 
 const TABS = [
@@ -121,6 +121,7 @@ export default function AdminPage() {
   const [subs, setSubs] = useState<Sub[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [smtp, setSmtp] = useState<SmtpInfo | null>(null);
+  const [push, setPush] = useState<{ count: number; vapid: string } | null>(null);
   const [logs, setLogs] = useState<SentLog[]>([]);
   const [imports, setImports] = useState<ImportLog[]>([]);
   const [years, setYears] = useState<number[]>([]);
@@ -141,6 +142,7 @@ export default function AdminPage() {
     ]);
     setSettings(sRes.settings);
     setSmtp(sRes.smtp);
+    setPush(sRes.push ?? null);
     setSubs(subRes.subscribers ?? []);
     setLogs(logRes.logs ?? []);
     setImports(logRes.imports ?? []);
@@ -221,7 +223,7 @@ export default function AdminPage() {
           {tab === 'uvoz' && <ImportTab say={say} onSaved={reloadMeta} years={years} />}
           {tab === 'dogodki' && <EventsTab say={say} years={years} onChanged={reloadMeta} />}
           {tab === 'narocniki' && <SubsTab subs={subs} say={say} onChanged={reloadMeta} />}
-          {tab === 'nastavitve' && <SettingsTab settings={settings} smtp={smtp} say={say} onChanged={reloadMeta} />}
+          {tab === 'nastavitve' && <SettingsTab settings={settings} smtp={smtp} push={push} say={say} onChanged={reloadMeta} />}
           {tab === 'dnevnik' && <LogsTab logs={logs} imports={imports} />}
         </div>
       </div>
@@ -769,7 +771,7 @@ function SubsTab({ subs, say, onChanged }: { subs: Sub[]; say: (k: 'ok' | 'err',
 
 /* ============================ NASTAVITVE ============================ */
 
-function SettingsTab({ settings, smtp, say, onChanged }: { settings: Settings | null; smtp: SmtpInfo | null; say: (k: 'ok' | 'err', t: string) => void; onChanged: () => void }) {
+function SettingsTab({ settings, smtp, push, say, onChanged }: { settings: Settings | null; smtp: SmtpInfo | null; push: { count: number; vapid: string } | null; say: (k: 'ok' | 'err', t: string) => void; onChanged: () => void }) {
   const [enabled, setEnabled] = useState(true);
   const [time, setTime] = useState('18:00');
   const [testTo, setTestTo] = useState('');
@@ -797,7 +799,7 @@ function SettingsTab({ settings, smtp, say, onChanged }: { settings: Settings | 
     }
   };
 
-  const sendTest = async (mode: 'test' | 'remind') => {
+  const sendTest = async (mode: 'test' | 'remind' | 'push') => {
     setBusy(true);
     try {
       const res = await fetch('/api/admin/test-email', {
@@ -806,7 +808,11 @@ function SettingsTab({ settings, smtp, say, onChanged }: { settings: Settings | 
         body: JSON.stringify(mode === 'test' ? { email: testTo, mode } : { mode }),
       });
       const data = await res.json();
-      if (mode === 'test') {
+      if (mode === 'push') {
+        const p = data.push as { sent: number; removed: number; failed: number } | undefined;
+        if (data.ok) say('ok', `Push poslan na ${p?.sent ?? 0} naprav${p && p.removed ? ` (odstranjenih potečenih: ${p.removed})` : ''}.`);
+        else say('err', data.error || `Push ni uspel${p ? ` (neuspešno: ${p.failed}, potečenih: ${p.removed})` : ''}.`);
+      } else if (mode === 'test') {
         if (data.ok) say('ok', `Testno sporočilo poslano na ${testTo}.`);
         else say('err', data.error || 'Pošiljanje ni uspelo.');
       } else {
@@ -865,6 +871,22 @@ function SettingsTab({ settings, smtp, say, onChanged }: { settings: Settings | 
           </button>
         </div>
       </div>
+
+      <div className="rounded-3xl border border-paper-200 bg-card p-5 sm:p-7">
+        <h3 className="font-display text-xl text-ink mb-3">Push obvestila (telefon)</h3>
+        <p className="text-sm text-ink-soft/80">
+          Registriranih naprav: <strong>{push?.count ?? 0}</strong> · VAPID ključi:{' '}
+          <strong>{push?.vapid === 'env' ? 'iz okolja' : 'samodejno ustvarjeni v bazi'}</strong>
+        </p>
+        <p className="text-sm text-ink-soft/70 mt-2">
+          Naprave se naročijo same na prvi strani (razdelek Obvestila). Ob »Sproži obvestilo zdaj« prejmejo opomnik tudi te naprave.
+        </p>
+        <div className="mt-4">
+          <button onClick={() => sendTest('push')} disabled={busy || !push?.count} className={ghostBtnCls}>
+            <Send className="w-4 h-4" /> Pošlji preizkusni push vsem
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
@@ -883,7 +905,7 @@ function LogsTab({ logs, imports }: { logs: SentLog[]; imports: ImportLog[] }) {
             {logs.map((l) => (
               <li key={l.id} className="rounded-xl border border-paper-200 bg-card/60 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-ink font-medium">{l.targetDate} · {villageName(l.village)} · {l.types.map(wasteLabel).join(', ')}</span>
+                  <span className="text-ink font-medium">{l.targetDate} · {villageName(l.village)} · {l.types.map(wasteLabel).join(', ')} · {l.channel === 'push' ? 'push' : 'e-pošta'}</span>
                   <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-full ${l.status === 'ok' ? 'bg-lime-400/20 text-ink-soft' : 'bg-coral-100 text-coral-700'}`}>{l.status}</span>
                 </div>
                 <div className="text-xs text-ink-soft/60 mt-1">

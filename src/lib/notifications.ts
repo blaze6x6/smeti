@@ -1,5 +1,15 @@
 import { addDaysStr, minutesNowLj, todayStr } from '@/lib/dates';
-import { getEventOn, getSettings, getSubscribersByVillage, logSent, setSetting } from '@/lib/data';
+import {
+  deletePushSubs,
+  getEventOn,
+  getPushSubsByVillage,
+  getSettings,
+  getSubscribersByVillage,
+  logSent,
+  markPushOk,
+  setSetting,
+} from '@/lib/data';
+import { buildReminderPayload, sendPush } from '@/lib/push';
 import { sendReminderMail, smtpConfigured } from '@/lib/mailer';
 import { villageName } from '@/lib/villages';
 import type { PoolClient } from 'pg';
@@ -10,7 +20,7 @@ export type CheckResult = {
   reason: string;
   sent?: number;
   targetDate?: string;
-  perVillage?: { village: string; date: string; types: string[]; sent: number }[];
+  perVillage?: { village: string; date: string; types: string[]; sent: number; push: number }[];
 };
 
 /**
@@ -57,57 +67,102 @@ async function runReminders(force: boolean): Promise<CheckResult> {
   if (!force) await setSetting('notify.lastRunDate', today);
 
   const target = addDaysStr(today, s.daysBefore);
-  const byVillage = await getSubscribersByVillage();
+  const emailByVillage = await getSubscribersByVillage();
+  const pushByVillage = await getPushSubsByVillage();
 
-  if (byVillage.size === 0) {
+  const villages = new Set<string>([...emailByVillage.keys(), ...pushByVillage.keys()]);
+  if (villages.size === 0) {
     return { ranToCompletion: true, reason: 'ni aktivnih naročnikov', targetDate: target };
   }
 
-  if (!smtpConfigured()) {
-    await logSent({ targetDate: target, village: '—', recipients: 0, types: [], status: 'error', error: 'SMTP ni nastavljen' });
-    return { ranToCompletion: false, reason: 'SMTP ni nastavljen (nastavi SMTP_HOST, SMTP_USER, SMTP_PASS)', targetDate: target };
+  // e-pošta je mogoča le z SMTP in javnim naslovom; push je neodvisen
+  const base = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
+  let emailBlocker: string | null = null;
+  if (emailByVillage.size > 0) {
+    if (!smtpConfigured()) emailBlocker = 'SMTP ni nastavljen';
+    else if (!base) emailBlocker = 'APP_BASE_URL ni nastavljen';
+  }
+  if (emailBlocker) {
+    await logSent({ targetDate: target, village: '—', recipients: 0, types: [], status: 'error', error: emailBlocker });
+    if (pushByVillage.size === 0) {
+      return { ranToCompletion: false, reason: `${emailBlocker} (potreben za pošiljanje e-pošte)`, targetDate: target };
+    }
   }
 
-  const base = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
-  if (!base) {
-    // brez javnega naslova bi bile povezave za odjavo v e-pošti neveljavne
-    await logSent({ targetDate: target, village: '—', recipients: 0, types: [], status: 'error', error: 'APP_BASE_URL ni nastavljen' });
-    return { ranToCompletion: false, reason: 'APP_BASE_URL ni nastavljen (potreben za povezavo za odjavo)', targetDate: target };
-  }
-  const perVillage: { village: string; date: string; types: string[]; sent: number }[] = [];
+  const perVillage: NonNullable<CheckResult['perVillage']> = [];
   let totalSent = 0;
 
-  for (const [village, subs] of byVillage) {
+  for (const village of villages) {
     const event = await getEventOn(target, village);
-    if (!event) continue; // v tem kraju jutri ni odvoza
+    if (!event) continue; // v tem kraju na ciljni dan ni odvoza
 
+    // --- e-pošta ---
     let sent = 0;
-    const errors: string[] = [];
-    for (const sub of subs) {
-      try {
-        await sendReminderMail({
-          to: sub.email,
-          dateStr: event.date,
-          types: event.types,
-          note: event.note,
-          villageLabel: villageName(village),
-          unsubscribeUrl: `${base}/api/unsubscribe?t=${sub.token}`,
-        });
-        sent++;
-      } catch (e) {
-        errors.push(`${sub.email}: ${e instanceof Error ? e.message : String(e)}`);
+    const subs = emailBlocker ? [] : emailByVillage.get(village) ?? [];
+    if (subs.length) {
+      const errors: string[] = [];
+      for (const sub of subs) {
+        try {
+          await sendReminderMail({
+            to: sub.email,
+            dateStr: event.date,
+            types: event.types,
+            note: event.note,
+            villageLabel: villageName(village),
+            unsubscribeUrl: `${base}/api/unsubscribe?t=${sub.token}`,
+          });
+          sent++;
+        } catch (e) {
+          errors.push(`${sub.email}: ${e instanceof Error ? e.message : String(e)}`);
+        }
       }
+      await logSent({
+        targetDate: target,
+        village,
+        recipients: sent,
+        types: event.types,
+        status: errors.length && !sent ? 'error' : 'ok',
+        error: errors.length ? errors.slice(0, 5).join(' | ') : null,
+        channel: 'email',
+      });
     }
-    totalSent += sent;
-    perVillage.push({ village, date: event.date, types: event.types, sent });
-    await logSent({
-      targetDate: target,
-      village,
-      recipients: sent,
-      types: event.types,
-      status: errors.length && !sent ? 'error' : 'ok',
-      error: errors.length ? errors.slice(0, 5).join(' | ') : null,
-    });
+
+    // --- push ---
+    let pushed = 0;
+    const psubs = pushByVillage.get(village) ?? [];
+    if (psubs.length) {
+      const payload = buildReminderPayload({
+        dateStr: event.date,
+        types: event.types,
+        note: event.note,
+        villageLabel: villageName(village),
+        daysBefore: s.daysBefore,
+      });
+      const okIds: number[] = [];
+      const goneIds: number[] = [];
+      const perrors: string[] = [];
+      for (const ps of psubs) {
+        const r = await sendPush(ps, payload);
+        if (r.ok) okIds.push(ps.id);
+        else if (r.gone) goneIds.push(ps.id);
+        else perrors.push(r.error || `HTTP ${r.status ?? '?'}`);
+      }
+      await markPushOk(okIds);
+      await deletePushSubs(goneIds);
+      pushed = okIds.length;
+      await logSent({
+        targetDate: target,
+        village,
+        recipients: pushed,
+        types: event.types,
+        status: perrors.length && !pushed ? 'error' : 'ok',
+        error: perrors.length ? perrors.slice(0, 5).join(' | ') : null,
+        channel: 'push',
+      });
+    }
+
+    totalSent += sent + pushed;
+    perVillage.push({ village, date: event.date, types: event.types, sent, push: pushed });
   }
 
   return {

@@ -15,6 +15,13 @@
       "when": 1790918111409,
       "tag": "0001_double_optin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790918112409,
+      "tag": "0002_push",
+      "breakpoints": true
     }
   ]
 }

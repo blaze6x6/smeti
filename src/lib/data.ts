@@ -1,6 +1,6 @@
-import { and, asc, eq, gte, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { imports, schedules, sentLogs, settings, subscribers, type ScheduleRow } from '@/db/schema';
+import { imports, pushSubscriptions, schedules, sentLogs, settings, subscribers, type ScheduleRow } from '@/db/schema';
 import { todayStr } from '@/lib/dates';
 import { DEFAULT_VILLAGE } from '@/lib/villages';
 
@@ -106,6 +106,61 @@ export async function setSetting(key: string, value: string): Promise<void> {
     .insert(settings)
     .values({ key, value })
     .onConflictDoUpdate({ target: settings.key, set: { value } });
+}
+
+export async function getSettingRaw(key: string): Promise<string | null> {
+  const rows = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+  return rows.length ? rows[0].value : null;
+}
+
+/** Zapiše nastavitev samo, če še ne obstaja (varno ob sočasnih klicih). */
+export async function setSettingIfAbsent(key: string, value: string): Promise<void> {
+  await db.insert(settings).values({ key, value }).onConflictDoNothing({ target: settings.key });
+}
+
+/* ---------- push naročnine ---------- */
+
+export type PushSubRow = typeof pushSubscriptions.$inferSelect;
+
+/** Vstavi ali posodobi naročnino naprave (po endpointu). */
+export async function upsertPushSub(k: { endpoint: string; p256dh: string; auth: string }, village: string): Promise<void> {
+  await db
+    .insert(pushSubscriptions)
+    .values({ ...k, village })
+    .onConflictDoUpdate({
+      target: pushSubscriptions.endpoint,
+      set: { p256dh: k.p256dh, auth: k.auth, village },
+    });
+}
+
+export async function removePushByEndpoint(endpoint: string): Promise<void> {
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+export async function getPushSubByEndpoint(endpoint: string): Promise<PushSubRow | null> {
+  const rows = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getAllPushSubs(): Promise<PushSubRow[]> {
+  return db.select().from(pushSubscriptions).orderBy(asc(pushSubscriptions.createdAt));
+}
+
+export async function getPushSubsByVillage(): Promise<Map<string, PushSubRow[]>> {
+  const map = new Map<string, PushSubRow[]>();
+  for (const r of await getAllPushSubs()) {
+    if (!map.has(r.village)) map.set(r.village, []);
+    map.get(r.village)!.push(r);
+  }
+  return map;
+}
+
+export async function deletePushSubs(ids: number[]): Promise<void> {
+  if (ids.length) await db.delete(pushSubscriptions).where(inArray(pushSubscriptions.id, ids));
+}
+
+export async function markPushOk(ids: number[]): Promise<void> {
+  if (ids.length) await db.update(pushSubscriptions).set({ lastOkAt: sql`now()` }).where(inArray(pushSubscriptions.id, ids));
 }
 
 /* ---------- naročniki ---------- */
@@ -221,6 +276,7 @@ export async function logSent(entry: {
   types: string[];
   status: string;
   error?: string | null;
+  channel?: 'email' | 'push';
 }) {
   await db.insert(sentLogs).values({
     targetDate: entry.targetDate,
@@ -229,6 +285,7 @@ export async function logSent(entry: {
     types: entry.types,
     status: entry.status,
     error: entry.error ?? null,
+    channel: entry.channel ?? 'email',
   });
 }
 

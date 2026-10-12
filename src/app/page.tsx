@@ -5,6 +5,7 @@ import { BellRing, Leaf, MapPin, Settings, Trash2 } from 'lucide-react';
 import { VillageProvider } from '@/components/village-context';
 import { VillageCalendar, VillagePicker } from '@/components/schedule-board';
 import { PwaInstall, SubscribeForm } from '@/components/home-extras';
+import { PushNotify } from '@/components/push-notify';
 import WasteClassification from '@/components/waste-classification';
 import PlacesSection from '@/components/places-section';
 import CollapsibleSection from '@/components/collapsible-section';
@@ -134,7 +135,7 @@ export default async function Home() {
           <div className="rounded-3xl border border-lime-500/40 bg-gradient-to-br from-lime-300 via-lime-400 to-amber-400 p-6 sm:p-10 text-on-accent">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-on-accent text-xs uppercase tracking-[0.25em] mb-3">
-                <BellRing className="w-4 h-4" /> Obvestila po e-pošti
+                <BellRing className="w-4 h-4" /> Obvestila
               </div>
               <h2 className="font-display text-3xl sm:text-4xl mb-3">Nikoli več pozabljen zabojnik</h2>
               <p className="text-sm sm:text-base mb-6 font-medium">
@@ -142,6 +143,7 @@ export default async function Home() {
                 opomnik s seznamom frakcij. Odjava je na en klik v vsakem sporočilu. Brez računov in gesel.
               </p>
               <SubscribeForm />
+              <PushNotify />
             </div>
           </div>
         </section>

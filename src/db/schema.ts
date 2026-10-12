@@ -36,6 +36,21 @@ export const subscribers = pgTable(
   (t) => [uniqueIndex('subscribers_email_uq').on(t.email)],
 );
 
+/** Naročnine na push obvestila (Web Push, po napravi/brskalniku) */
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: serial('id').primaryKey(),
+    endpoint: text('endpoint').notNull(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    village: text('village').notNull().default('smokuc'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    lastOkAt: timestamp('last_ok_at', { withTimezone: true }),
+  },
+  (t) => [uniqueIndex('push_endpoint_uq').on(t.endpoint)],
+);
+
 /** Nastavitve aplikacije (ključ/vrednost) */
 export const settings = pgTable('settings', {
   key: text('key').primaryKey(),
@@ -52,6 +67,8 @@ export const sentLogs = pgTable('sent_logs', {
   types: text('types').array().notNull().default([]),
   status: text('status').notNull().default('ok'), // ok | error | preskočeno
   error: text('error'),
+  /** email | push */
+  channel: text('channel').notNull().default('email'),
 });
 
 /** Zgodovina uvozov PDF koledarjev */

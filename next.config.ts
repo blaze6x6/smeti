@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
     "pg",
     "nodemailer",
     "node-cron",
+    "web-push",
   ],
   async headers() {
     return [

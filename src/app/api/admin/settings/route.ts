@@ -1,14 +1,17 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSettings, setSetting } from '@/lib/data';
+import { getAllPushSubs, getSettings, setSetting } from '@/lib/data';
 import { smtpConfigured } from '@/lib/mailer';
+import { getVapid } from '@/lib/push';
 
 export async function GET() {
   const s = await getSettings();
+  const push = { count: (await getAllPushSubs()).length, vapid: (await getVapid()).source };
   return NextResponse.json({
     ok: true,
     settings: s,
+    push,
     smtp: {
       configured: smtpConfigured(),
       host: process.env.SMTP_HOST || '',

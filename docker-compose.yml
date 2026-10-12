@@ -38,6 +38,10 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       # zaščita zunanjega cron klica (neobvezno): /api/cron/daily?secret=...
       CRON_SECRET: ${CRON_SECRET:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+      PUSH_ALLOWED_HOSTS: ${PUSH_ALLOWED_HOSTS:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_SECRET: ${ADMIN_SECRET:-}
       # zaledje brez gesla je privzeto zaklenjeno; "true" ga odpre (samo za lokalno rabo)

@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:seed": "tsx src/db/seed.ts",
-    "test": "tsx --test src/lib/villages.test.ts"
+    "test": "tsx --test src/lib/villages.test.ts src/lib/push-core.test.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",
@@ -27,7 +27,8 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tsx": "^4.23.15",
-    "unpdf": "^1.8.1"
+    "unpdf": "^1.8.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
@@ -35,6 +36,7 @@
     "@types/pg": "8.18.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@types/web-push": "^3.6.4",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",

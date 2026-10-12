@@ -52,6 +52,8 @@ Zaledje: http://localhost:3000/admin
 | `ADMIN_PASSWORD` | geslo za zaledje `/admin`; če je prazno, je zaledje v produkciji **zaklenjeno** |
 | `ALLOW_OPEN_ADMIN` | `true` izrecno dovoli zaledje brez gesla (samo lokalno) |
 | `ADMIN_SECRET` | neobvezno: ločen ključ za podpis seje (sicer izpeljan iz gesla) |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | neobvezno; ključi za push. Brez njiju se samodejno ustvarijo in shranijo v bazo |
+| `VAPID_SUBJECT`, `PUSH_ALLOWED_HOSTS` | neobvezno; kontakt za push storitve, dodatni dovoljeni push strežniki |
 | `CRON_SECRET` | ključ za zunanji klic `/api/cron/daily` (glava `x-cron-secret`); brez njega je endpoint izklopljen |
 
 ## Uvoz novega leta (pdf)
@@ -100,3 +102,13 @@ Next.js (App Router) · Tailwind CSS · PostgreSQL + Drizzle ORM · nodemailer �
 pdfjs-dist + @napi-rs/canvas (branje PDF koledarjev) · Docker (multi-stage, standalone)
 
 Viri podatkov: [JEKO d.o.o. Jesenice — Koledar individualnega odvoza odpadkov, Občina Žirovnica](https://jeko.si/odpadki/)
+
+
+## Push obvestila (telefon)
+
+Poleg e-pošte lahko obiskovalci vklopijo obvestila na zaslonu telefona (razdelek »Obvestila« na prvi strani, gumb *Vklopi obvestila na tej napravi*). Brez računa in e-pošte; naprava se veže na izbrani kraj.
+
+- Zahteva **HTTPS** (ali localhost). Android/Chrome deluje kar v brskalniku; **iPhone (iOS 16.4+) le, če je aplikacija dodana na domači zaslon** in odprta z ikone.
+- VAPID ključi se ob prvi uporabi samodejno ustvarijo v bazi; za lastne nastavi `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`. Če ključe zamenjaš, se naprave ob naslednjem obisku strani znova naročijo (po potrebi pritisni »Izklopi« in »Vklopi«).
+- Pošiljanje poteka v isti dnevni uri kot e-pošta; potečene naprave (HTTP 404/410) se samodejno odstranijo.
+- **Preizkus:** na prvi strani vklopi obvestila in pritisni *Preizkusi* (pride takoj). V zaledju (Nastavitve → Push obvestila) *Pošlji preizkusni push vsem*, ali *Sproži obvestilo zdaj* za pravi opomnik (pošlje se le, če je na ciljni dan odvoz).
